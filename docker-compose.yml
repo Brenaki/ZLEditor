@@ -1,0 +1,10 @@
+services:
+  latex-editor:
+    build: .
+    # network_mode: host shares the host's network namespace on Linux.
+    # This means:
+    #   - The app is accessible at http://localhost:8765 from the host browser
+    #   - Zotero Better BibTeX at localhost:23119 is reachable from inside the container
+    #   - Port mapping (ports:) is ignored and not needed with host networking
+    network_mode: host
+    restart: unless-stopped
