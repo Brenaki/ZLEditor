@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zotero LaTeX</title>
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/layout/editor.css">
+</head>
+<body>
+
+<div class="app-wrapper">
+
+  <!-- ── Toolbar ── -->
+  <header class="toolbar">
+    <div class="toolbar__left">
+      <button class="btn btn--sm" id="btn-import">Importar .zip</button>
+      <input type="file" id="input-import" accept=".zip" hidden>
+      <button class="btn btn--sm btn--ghost" id="btn-new-file">+ Arquivo</button>
+      <div class="toolbar__divider"></div>
+    </div>
+
+    <div class="toolbar__center">
+      <span class="toolbar__project-name" id="project-name">Sem projeto</span>
+    </div>
+
+    <div class="toolbar__right">
+      <span id="compile-status" class="toolbar__status"></span>
+      <button class="btn btn--sm btn--ghost" id="btn-log">Ver log</button>
+      <button class="btn btn--sm btn--primary" id="btn-compile">▶ Compilar</button>
+      <div class="toolbar__divider"></div>
+      <button class="btn btn--sm" id="btn-save">Salvar .zip</button>
+    </div>
+  </header>
+
+  <!-- ── 3-column workspace ── -->
+  <div class="workspace">
+
+    <!-- Left: File tree + Zotero panel -->
+    <aside class="left-col">
+      <div class="file-tree">
+        <div class="file-tree__header">
+          <span class="file-tree__title">Arquivos</span>
+        </div>
+        <div class="file-tree__list" id="file-tree-list"></div>
+      </div>
+
+      <!-- Retractable Zotero panel -->
+      <div class="zotero-panel" id="zotero-panel">
+        <button class="zotero-panel__toggle" id="zotero-toggle">
+          <span>Zotero</span>
+          <span class="zotero-panel__toggle-icon" id="zotero-toggle-icon">▲</span>
+        </button>
+        <div class="zotero-panel__body">
+          <div class="zotero-panel__status">
+            <span class="status-dot status-dot--pending" id="status-dot"></span>
+            <span class="zotero-panel__status-text" id="status-text">Não conectado</span>
+            <button class="btn btn--sm btn--ghost" id="connect-btn">Conectar</button>
+          </div>
+          <div class="zotero-panel__search">
+            <input class="input" type="text" id="search-input"
+                   placeholder="Buscar referências…" autocomplete="off">
+          </div>
+          <div class="zotero-panel__list" id="ref-list"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Center: CodeMirror editor -->
+    <div class="editor-col">
+      <div class="editor-header">
+        <span id="active-filename">—</span>
+      </div>
+      <div class="editor-container" id="editor-container"></div>
+    </div>
+
+    <!-- Right: PDF viewer -->
+    <div class="pdf-col">
+      <div class="pdf-header">
+        <span id="compile-timestamp"></span>
+      </div>
+      <div class="pdf-container" id="pdf-container">
+        <div class="empty-state">Clique em <strong>▶ Compilar</strong> para ver o PDF</div>
+      </div>
+    </div>
+
+  </div><!-- .workspace -->
+</div><!-- .app-wrapper -->
+
+<!-- ── Log modal ── -->
+<dialog id="log-modal">
+  <div class="modal__header">
+    <span class="modal__title">Log de compilação</span>
+  </div>
+  <div class="modal__body">
+    <pre class="log-output" id="log-output"></pre>
+  </div>
+  <div class="modal__footer">
+    <button class="btn" id="btn-copy-log">Copiar log</button>
+    <button class="btn btn--primary" id="btn-close-log">Fechar</button>
+  </div>
+</dialog>
+
+<!-- ── Restore session modal ── -->
+<dialog id="restore-modal">
+  <div class="modal__header">
+    <span class="modal__title">Restaurar sessão</span>
+  </div>
+  <div class="modal__body">
+    <p class="restore-info">
+      Existe uma sessão salva automaticamente em
+      <strong id="restore-date"></strong>.<br>
+      Deseja restaurá-la?
+    </p>
+  </div>
+  <div class="modal__footer">
+    <button class="btn" id="btn-discard">Descartar</button>
+    <button class="btn btn--primary" id="btn-restore">Restaurar</button>
+  </div>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="scripts/app.js"></script>
+</body>
+</html>

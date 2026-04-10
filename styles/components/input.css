@@ -1,0 +1,28 @@
+.input {
+  width: 100%;
+  padding: 6px var(--sp-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 15%, transparent);
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+textarea.input {
+  resize: none;
+  line-height: 1.7;
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+}

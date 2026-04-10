@@ -1,0 +1,89 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+}
+
+.tab {
+  padding: var(--sp-3) var(--sp-4);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+  user-select: none;
+}
+
+.tab:hover {
+  color: var(--color-text);
+}
+
+.tab--active {
+  color: var(--color-text);
+  border-bottom-color: var(--color-accent);
+}
+
+/* Panels */
+.panel {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel--active {
+  display: flex;
+}
+
+/* BibTeX panel */
+.bibtex-area {
+  flex: 1;
+  padding: var(--sp-4);
+  overflow-y: auto;
+}
+
+.bibtex-actions {
+  padding: var(--sp-2) var(--sp-4);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+/* Editor panel */
+.editor-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-4);
+  gap: var(--sp-2);
+  overflow: hidden;
+}
+
+.editor-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.editor-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1);
+  min-height: 24px;
+}
+
+.editor-actions {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}

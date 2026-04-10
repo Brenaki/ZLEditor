@@ -1,0 +1,58 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-secondary);
+  border-right: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.sidebar__header {
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.sidebar__title {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sidebar__status {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.sidebar__status-text {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  flex: 1;
+}
+
+.sidebar__search {
+  padding: var(--sp-2) var(--sp-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sidebar__list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar__list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar__list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar__list::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 2px;
+}
