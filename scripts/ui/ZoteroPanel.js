@@ -67,6 +67,11 @@ export class ZoteroPanel {
     this._render(refs);
   }
 
+  /** Returns array of citekey strings currently loaded in the panel. */
+  getCitekeys() {
+    return this._allRefs.map(r => r.key);
+  }
+
   showEmpty(msg) {
     this._listEl.innerHTML = `<div class="empty-state" style="padding:0.75rem;font-size:12px;">${msg}</div>`;
   }

@@ -35,6 +35,7 @@ const editor = new Editor({
     if (_activeFile) store.setText(_activeFile, content);
     storage.scheduleSave(store);
   },
+  getCitekeys: () => zoteroPanel?.getCitekeys() ?? [],
 });
 
 const pdfViewer = new PdfViewer({
@@ -147,11 +148,12 @@ async function handleCompile() {
 
   const btn = document.getElementById('btn-compile');
   const statusEl = document.getElementById('compile-status');
+  const engine = document.getElementById('engine-select').value;
   btn.disabled = true;
   statusEl.innerHTML = '<span class="spinner"></span>';
 
   try {
-    const result = await compile.compile(store);
+    const result = await compile.compile(store, { engine });
     logModal.setLog(result.log ?? '');
 
     if (result.success) {

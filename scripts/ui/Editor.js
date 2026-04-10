@@ -1,6 +1,8 @@
 /**
- * Textarea-based code editor — no external dependencies.
- * Implements the same interface as the CodeMirror wrapper:
+ * Editor wrapper — loads the locally-bundled CodeMirror 6 (editor-bundle.js)
+ * and delegates to window.initEditor once the script is ready.
+ *
+ * Public interface (same as the old textarea editor):
  *   open(name, content), getContent(), insertAtCursor(text)
  */
 export class Editor {
@@ -9,47 +11,98 @@ export class Editor {
    *   containerEl: HTMLElement,
    *   filenameEl: HTMLElement,
    *   onChange: (content: string) => void,
+   *   getCitekeys: () => string[],
    * }} opts
    */
-  constructor({ containerEl, filenameEl, onChange }) {
-    this._filenameEl = filenameEl;
-    this._onChange   = onChange;
+  constructor({ containerEl, filenameEl, onChange, getCitekeys }) {
+    this._filenameEl  = filenameEl;
+    this._onChange    = onChange;
+    this._getCitekeys = getCitekeys;
+    this._containerEl = containerEl;
+    this._cm          = null;
+    this._pendingOpen = null;
 
-    this._ta = document.createElement('textarea');
-    this._ta.className    = 'editor-textarea';
-    this._ta.spellcheck   = false;
-    this._ta.autocomplete = 'off';
-    this._ta.autocorrect  = 'off';
-    this._ta.autocapitalize = 'off';
-    containerEl.appendChild(this._ta);
-
-    this._ta.addEventListener('input', () => this._onChange?.(this._ta.value));
-    this._ta.addEventListener('keydown', e => this._handleKey(e));
+    const script  = document.createElement('script');
+    script.src    = '/scripts/editor-bundle.js';
+    script.onload = () => this._init();
+    script.onerror = () => this._fallback();
+    document.head.appendChild(script);
   }
 
-  /** @param {string} name  @param {string} content */
+  // ── Public API ────────────────────────────────────────────────────────────
+
   open(name, content) {
-    this._filenameEl.textContent = name;
-    this._ta.value = content ?? '';
+    if (this._cm) {
+      this._cm.open(name, content);
+    } else {
+      this._pendingOpen = { name, content };
+      this._filenameEl.textContent = name;
+    }
   }
 
-  getContent() { return this._ta.value; }
+  getContent() {
+    return this._cm ? this._cm.getContent() : (this._pendingOpen?.content ?? '');
+  }
 
-  /** @param {string} text */
   insertAtCursor(text) {
-    const start = this._ta.selectionStart;
-    const end   = this._ta.selectionEnd;
-    this._ta.value =
-      this._ta.value.slice(0, start) + text + this._ta.value.slice(end);
-    this._ta.selectionStart = this._ta.selectionEnd = start + text.length;
-    this._ta.focus();
-    this._onChange?.(this._ta.value);
+    this._cm?.insertAtCursor(text);
   }
 
-  /** Tab → insert 2 spaces instead of losing focus. */
-  _handleKey(e) {
-    if (e.key !== 'Tab') return;
-    e.preventDefault();
-    this.insertAtCursor('  ');
+  // ── Private ───────────────────────────────────────────────────────────────
+
+  _init() {
+    this._cm = window.initEditor({
+      containerEl: this._containerEl,
+      filenameEl:  this._filenameEl,
+      onChange:    this._onChange,
+      getCitekeys: this._getCitekeys,
+    });
+
+    if (this._pendingOpen) {
+      this._cm.open(this._pendingOpen.name, this._pendingOpen.content);
+      this._pendingOpen = null;
+    }
+  }
+
+  /** Graceful fallback to plain textarea if the bundle fails to load. */
+  _fallback() {
+    console.warn('[Editor] editor-bundle.js failed to load — falling back to textarea');
+    const ta = document.createElement('textarea');
+    ta.className      = 'editor-textarea';
+    ta.spellcheck     = false;
+    ta.autocomplete   = 'off';
+    ta.autocorrect    = 'off';
+    ta.autocapitalize = 'off';
+    this._containerEl.appendChild(ta);
+
+    ta.addEventListener('input', () => this._onChange?.(ta.value));
+    ta.addEventListener('keydown', e => {
+      if (e.key !== 'Tab') return;
+      e.preventDefault();
+      const s = ta.selectionStart;
+      ta.value = ta.value.slice(0, s) + '  ' + ta.value.slice(ta.selectionEnd);
+      ta.selectionStart = ta.selectionEnd = s + 2;
+      this._onChange?.(ta.value);
+    });
+
+    this._cm = {
+      open: (name, content) => {
+        this._filenameEl.textContent = name;
+        ta.value = content ?? '';
+      },
+      getContent: () => ta.value,
+      insertAtCursor: (text) => {
+        const s = ta.selectionStart;
+        ta.value = ta.value.slice(0, s) + text + ta.value.slice(ta.selectionEnd);
+        ta.selectionStart = ta.selectionEnd = s + text.length;
+        ta.focus();
+        this._onChange?.(ta.value);
+      },
+    };
+
+    if (this._pendingOpen) {
+      this._cm.open(this._pendingOpen.name, this._pendingOpen.content);
+      this._pendingOpen = null;
+    }
   }
 }

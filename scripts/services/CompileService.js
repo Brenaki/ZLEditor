@@ -2,12 +2,14 @@ export class CompileService {
   /**
    * Sends project files to POST /compile and returns the result.
    * @param {import('../store/ProjectStore.js').ProjectStore} store
+   * @param {{ engine?: 'pdflatex'|'xelatex'|'lualatex' }} [opts]
    * @returns {Promise<{ success: boolean, pdf?: ArrayBuffer, log?: string }>}
    */
-  async compile(store) {
+  async compile(store, { engine = 'pdflatex' } = {}) {
     const payload = {
       files:    store.toCompilePayload(),
       rootFile: store.rootFile,
+      engine,
     };
 
     const resp = await fetch('/compile', {

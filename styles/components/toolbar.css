@@ -41,6 +41,25 @@
   margin: 0 var(--sp-1);
 }
 
+/* Engine selector */
+.engine-select {
+  height: 28px;
+  padding: 0 var(--sp-2);
+  font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  color: var(--color-text-secondary);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  outline: none;
+}
+
+.engine-select:focus {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
 /* Compile spinner */
 @keyframes spin {
   to { transform: rotate(360deg); }

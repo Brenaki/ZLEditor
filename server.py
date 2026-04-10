@@ -71,11 +71,15 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self._json(400, {'error': True, 'log': 'JSON inválido'})
             return
 
-        if not shutil.which('pdflatex'):
+        engine    = payload.get('engine', 'pdflatex')
+        if engine not in ('pdflatex', 'xelatex', 'lualatex'):
+            engine = 'pdflatex'
+
+        if not shutil.which(engine):
             self._json(500, {
                 'error': True,
                 'log': (
-                    'pdflatex não encontrado.\n'
+                    f'{engine} não encontrado.\n'
                     'Instale com: sudo pacman -S texlive-basic texlive-latex texlive-latexrecommended'
                 ),
             })
@@ -87,7 +91,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
         try:
             has_bib = self._write_files(files, tmpdir)
-            log, pdf_bytes = self._run_latex(root_file, tmpdir, has_bib)
+            log, pdf_bytes = self._run_latex(root_file, tmpdir, has_bib, engine)
             _last_log = log
 
             if pdf_bytes is None:
@@ -122,7 +126,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         return has_bib
 
     @staticmethod
-    def _run_latex(root_file, tmpdir, has_bib):
+    def _run_latex(root_file, tmpdir, has_bib, engine='pdflatex'):
         root_base = os.path.splitext(root_file)[0]
         log_parts = []
 
@@ -134,7 +138,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             log_parts.append(r.stdout)
             return r
 
-        latex_args = ['pdflatex', '-interaction=nonstopmode', '-halt-on-error', root_file]
+        latex_args = [engine, '-interaction=nonstopmode', '-halt-on-error', root_file]
 
         r = run(*latex_args)
         if r.returncode != 0:
