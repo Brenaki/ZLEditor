@@ -8,6 +8,7 @@
 @import './components/card.css';
 @import './components/toolbar.css';
 @import './components/modal.css';
+@import './components/quick-open.css';
 
 /* ── Layout Imports ── */
 @import './layout/app.css';

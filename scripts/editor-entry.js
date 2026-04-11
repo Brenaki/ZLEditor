@@ -91,7 +91,7 @@ const appTheme = EditorView.theme({
   'li[aria-selected].cm-completion': { background: '#eff6ff', color: '#185FA5' },
 });
 
-window.initEditor = function({ containerEl, filenameEl, onChange, getCitekeys }) {
+window.initEditor = function({ containerEl, filenameEl, onChange, getCitekeys, onQuickOpen }) {
   const view = new EditorView({
     state: EditorState.create({
       doc: '',
@@ -113,6 +113,7 @@ window.initEditor = function({ containerEl, filenameEl, onChange, getCitekeys })
           activateOnTyping: true,
         }),
         keymap.of([
+          { key: 'Ctrl-p', run: () => { onQuickOpen?.(); return true; } },
           ...closeBracketsKeymap,
           ...defaultKeymap,
           ...historyKeymap,
@@ -141,6 +142,16 @@ window.initEditor = function({ containerEl, filenameEl, onChange, getCitekeys })
 
     getContent() {
       return view.state.doc.toString();
+    },
+
+    goToLine(n) {
+      const lineCount = view.state.doc.lines;
+      const line = view.state.doc.line(Math.max(1, Math.min(n, lineCount)));
+      view.dispatch({
+        selection: { anchor: line.from },
+        effects: EditorView.scrollIntoView(line.from, { y: 'center' }),
+      });
+      view.focus();
     },
 
     insertAtCursor(text) {

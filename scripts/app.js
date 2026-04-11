@@ -10,6 +10,7 @@ import { Editor }         from './ui/Editor.js';
 import { PdfViewer }      from './ui/PdfViewer.js';
 import { LogModal }       from './ui/LogModal.js';
 import { ZoteroPanel }    from './ui/ZoteroPanel.js';
+import { QuickOpen }      from './ui/QuickOpen.js';
 import { generateBibtex } from './utils/bibtex.js';
 
 // ── Services & State ──────────────────────────────────────────────────────
@@ -34,9 +35,10 @@ const fileTree = new FileTree({
 });
 
 const editor = new Editor({
-  containerEl: document.getElementById('editor-container'),
-  filenameEl:  document.getElementById('active-filename'),
-  onChange:    content => {
+  containerEl:  document.getElementById('editor-container'),
+  filenameEl:   document.getElementById('active-filename'),
+  onQuickOpen:  () => quickOpen.open(),
+  onChange:     content => {
     if (_activeFile) store.setText(_activeFile, content);
     if (_activeFile?.endsWith('.bib')) bib.ingest(_activeFile, content);
     storage.scheduleSave(store);
@@ -134,6 +136,17 @@ const zoteroPanel = new ZoteroPanel({
   },
 });
 
+const quickOpen = new QuickOpen({
+  overlayEl: document.getElementById('quick-open-overlay'),
+  inputEl:   document.getElementById('quick-open-input'),
+  listEl:    document.getElementById('quick-open-list'),
+  getFiles:  () => store.entries().filter(([, f]) => !f.binary),
+  openFile:  (name, line) => {
+    openFile(name);
+    if (line != null) editor.goToLine(line);
+  },
+});
+
 // ── Active file tracking ──────────────────────────────────────────────────
 let _activeFile = null;
 
@@ -157,6 +170,13 @@ document.getElementById('btn-auto-compile')
     localStorage.setItem('auto-compile', _autoCompileEnabled);
     _updateAutoCompileBtn();
   });
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'p' && e.ctrlKey && !e.shiftKey && !e.altKey) {
+    e.preventDefault();
+    quickOpen.open();
+  }
+});
 
 document.getElementById('btn-save')
   .addEventListener('click', () => zip.exportZip(store));

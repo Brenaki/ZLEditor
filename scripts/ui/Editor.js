@@ -12,15 +12,17 @@ export class Editor {
    *   filenameEl: HTMLElement,
    *   onChange: (content: string) => void,
    *   getCitekeys: () => string[],
+   *   onQuickOpen?: () => void,
    * }} opts
    */
-  constructor({ containerEl, filenameEl, onChange, getCitekeys }) {
-    this._filenameEl  = filenameEl;
-    this._onChange    = onChange;
-    this._getCitekeys = getCitekeys;
-    this._containerEl = containerEl;
-    this._cm          = null;
-    this._pendingOpen = null;
+  constructor({ containerEl, filenameEl, onChange, getCitekeys, onQuickOpen }) {
+    this._filenameEl   = filenameEl;
+    this._onChange     = onChange;
+    this._getCitekeys  = getCitekeys;
+    this._onQuickOpen  = onQuickOpen ?? null;
+    this._containerEl  = containerEl;
+    this._cm           = null;
+    this._pendingOpen  = null;
 
     const script  = document.createElement('script');
     script.src    = '/scripts/editor-bundle.js';
@@ -48,14 +50,19 @@ export class Editor {
     this._cm?.insertAtCursor(text);
   }
 
+  goToLine(n) {
+    this._cm?.goToLine?.(n);
+  }
+
   // ── Private ───────────────────────────────────────────────────────────────
 
   _init() {
     this._cm = window.initEditor({
-      containerEl: this._containerEl,
-      filenameEl:  this._filenameEl,
-      onChange:    this._onChange,
-      getCitekeys: this._getCitekeys,
+      containerEl:  this._containerEl,
+      filenameEl:   this._filenameEl,
+      onChange:     this._onChange,
+      getCitekeys:  this._getCitekeys,
+      onQuickOpen:  this._onQuickOpen,
     });
 
     if (this._pendingOpen) {

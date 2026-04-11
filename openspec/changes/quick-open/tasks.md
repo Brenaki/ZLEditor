@@ -1,27 +1,27 @@
 ## 1. DOM e CSS
 
-- [ ] 1.1 Adicionar `<div id="quick-open-overlay">` com input e lista de resultados no `index.html`
-- [ ] 1.2 Criar estilos para o overlay (backdrop semitransparente, container centralizado, input destacado, lista de resultados)
+- [x] 1.1 Adicionar `<div id="quick-open-overlay">` com input e lista de resultados no `index.html`
+- [x] 1.2 Criar estilos para o overlay (backdrop semitransparente, container centralizado, input destacado, lista de resultados)
 
 ## 2. QuickOpen component
 
-- [ ] 2.1 Criar `scripts/ui/QuickOpen.js` com `constructor({ overlayEl, inputEl, listEl, getFiles, openFile })`
-- [ ] 2.2 Implementar `open()` (exibe overlay, limpa input, foca input) e `close()` (esconde overlay)
-- [ ] 2.3 Implementar lógica de filtro no `input` event: modo arquivo (sem prefixo) e modo conteúdo (prefixo `%`)
-- [ ] 2.4 Implementar renderização de resultados: arquivo → nome; conteúdo → `arquivo:linha — contexto`
-- [ ] 2.5 Implementar navegação por teclado (↑↓ destacam item, Enter abre, Escape fecha)
-- [ ] 2.6 Ao clicar/Enter em resultado: chamar `openFile(name, line?)` e fechar overlay
+- [x] 2.1 Criar `scripts/ui/QuickOpen.js` com `constructor({ overlayEl, inputEl, listEl, getFiles, openFile })`
+- [x] 2.2 Implementar `open()` (exibe overlay, limpa input, foca input) e `close()` (esconde overlay)
+- [x] 2.3 Implementar lógica de filtro no `input` event: modo arquivo (sem prefixo) e modo conteúdo (prefixo `%`)
+- [x] 2.4 Implementar renderização de resultados: arquivo → nome; conteúdo → `arquivo:linha — contexto`
+- [x] 2.5 Implementar navegação por teclado (↑↓ destacam item, Enter abre, Escape fecha)
+- [x] 2.6 Ao clicar/Enter em resultado: chamar `openFile(name, line?)` e fechar overlay
 
 ## 3. Editor — expor goToLine e callback onQuickOpen
 
-- [ ] 3.1 Em `editor-entry.js`, expor `goToLine(n)` no objeto retornado por `initEditor`
-- [ ] 3.2 Adicionar parâmetro `onQuickOpen` em `initEditor` e binding `Ctrl-p` no keymap do CM6
+- [x] 3.1 Em `editor-entry.js`, expor `goToLine(n)` no objeto retornado por `initEditor`
+- [x] 3.2 Adicionar parâmetro `onQuickOpen` em `initEditor` e binding `Ctrl-p` no keymap do CM6
 
 ## 4. Integração em app.js
 
-- [ ] 4.1 Importar e instanciar `QuickOpen` em `app.js`
-- [ ] 4.2 Passar `getFiles: () => store.entries().filter(...)` e `openFile: (name, line) => { openFile(name); if (line) editor.goToLine(line); }`
-- [ ] 4.3 Adicionar listener `document.addEventListener('keydown')` para capturar `Ctrl+P` fora do editor
+- [x] 4.1 Importar e instanciar `QuickOpen` em `app.js`
+- [x] 4.2 Passar `getFiles: () => store.entries().filter(...)` e `openFile: (name, line) => { openFile(name); if (line) editor.goToLine(line); }`
+- [x] 4.3 Adicionar listener `document.addEventListener('keydown')` para capturar `Ctrl+P` fora do editor
 
 ## 5. Verificação
 
