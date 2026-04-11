@@ -1,4 +1,5 @@
 import { ZoteroService }  from './services/ZoteroService.js';
+import { BibService }     from './services/BibService.js';
 import { CompileService } from './services/CompileService.js';
 import { ZipService }     from './services/ZipService.js';
 import { StorageService } from './services/StorageService.js';
@@ -13,6 +14,7 @@ import { ZoteroPanel }    from './ui/ZoteroPanel.js';
 // ── Services & State ──────────────────────────────────────────────────────
 const store   = new ProjectStore();
 const zotero  = new ZoteroService();
+const bib     = new BibService();
 const compile = new CompileService();
 const zip     = new ZipService();
 const storage = new StorageService('zotero-latex-autosave');
@@ -33,9 +35,13 @@ const editor = new Editor({
   filenameEl:  document.getElementById('active-filename'),
   onChange:    content => {
     if (_activeFile) store.setText(_activeFile, content);
+    if (_activeFile?.endsWith('.bib')) bib.ingest(_activeFile, content);
     storage.scheduleSave(store);
   },
-  getCitekeys: () => zoteroPanel?.getCitekeys() ?? [],
+  getCitekeys: () => [...new Set([
+    ...zoteroPanel?.getCitekeys() ?? [],
+    ...bib.getCitekeys(),
+  ])],
 });
 
 const pdfViewer = new PdfViewer({
@@ -86,6 +92,7 @@ document.getElementById('input-import')
     if (!file) return;
     try {
       await zip.importZip(file, store);
+      ingestBibFiles();
       refreshFileTree();
       openFile(store.rootFile);
       document.getElementById('project-name').textContent = store.name;
@@ -102,6 +109,7 @@ document.getElementById('btn-restore')
     const saved = storage.load();
     if (saved) {
       store.fromJSON(saved.data);
+      ingestBibFiles();
       refreshFileTree();
       openFile(store.rootFile);
       document.getElementById('project-name').textContent = store.name;
@@ -126,6 +134,7 @@ function handleFileSelect(name) {
 }
 
 function handleFileDelete(name) {
+  if (name.endsWith('.bib')) bib.remove(name);
   store.delete(name);
   if (_activeFile === name) {
     const first = store.entries()[0]?.[0] ?? null;
@@ -191,6 +200,14 @@ async function handleZoteroConnect() {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
+function ingestBibFiles() {
+  for (const [name, file] of store.entries()) {
+    if (name.endsWith('.bib') && !file.binary) {
+      bib.ingest(name, file.content ?? '');
+    }
+  }
+}
+
 function openFile(name) {
   const file = store.get(name);
   if (!file || file.binary) return;
