@@ -50,3 +50,14 @@
   font-size: var(--text-sm);
   border-radius: var(--radius-sm);
 }
+
+.btn--active {
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  border-color: var(--color-accent);
+}
+
+.btn--active:hover {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}

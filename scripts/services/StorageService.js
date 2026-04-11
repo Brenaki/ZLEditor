@@ -1,10 +1,14 @@
 const DEBOUNCE_MS = 2000;
 
 export class StorageService {
-  /** @param {string} key - localStorage key */
-  constructor(key) {
-    this._key   = key;
-    this._timer = null;
+  /**
+   * @param {string} key - localStorage key
+   * @param {{ onSave?: () => void }} [opts]
+   */
+  constructor(key, { onSave } = {}) {
+    this._key    = key;
+    this._timer  = null;
+    this._onSave = onSave ?? null;
   }
 
   /** Save store to localStorage (debounced). */
@@ -33,6 +37,7 @@ export class StorageService {
         data:    store.toJSON(),
         savedAt: Date.now(),
       }));
+      this._onSave?.();
     } catch {
       // localStorage full or unavailable — silently ignore
     }

@@ -75,7 +75,7 @@ const appTheme = EditorView.theme({
   },
   '.cm-activeLine': { background: '#eff6ff' },
   '.cm-activeLineGutter': { background: '#eff6ff' },
-  '.cm-selectionBackground, ::selection': { background: '#dbeafe !important' },
+  '.cm-selectionBackground, ::selection': { background: '#bfdbfe !important' },
   '.cm-cursor': { borderLeftColor: '#185FA5' },
   // Autocomplete popup
   '.cm-tooltip.cm-tooltip-autocomplete': {

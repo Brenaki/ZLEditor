@@ -18,7 +18,9 @@ const zotero  = new ZoteroService();
 const bib     = new BibService();
 const compile = new CompileService();
 const zip     = new ZipService();
-const storage = new StorageService('zotero-latex-autosave');
+const storage = new StorageService('zotero-latex-autosave', {
+  onSave: () => toast.show('Sessão salva automaticamente'),
+});
 
 // ── UI Components ─────────────────────────────────────────────────────────
 const toast = new Toast(document.getElementById('toast'));
@@ -38,6 +40,13 @@ const editor = new Editor({
     if (_activeFile) store.setText(_activeFile, content);
     if (_activeFile?.endsWith('.bib')) bib.ingest(_activeFile, content);
     storage.scheduleSave(store);
+    if (_autoCompileEnabled && !_activeFile?.endsWith('.bib')) {
+      const compileBtn = document.getElementById('btn-compile');
+      if (!compileBtn.disabled) {
+        clearTimeout(_autoCompileTimer);
+        _autoCompileTimer = setTimeout(() => handleCompile(), 2000);
+      }
+    }
   },
   getCitekeys: () => [...new Set([
     ...zoteroPanel?.getCitekeys() ?? [],
@@ -128,9 +137,26 @@ const zoteroPanel = new ZoteroPanel({
 // ── Active file tracking ──────────────────────────────────────────────────
 let _activeFile = null;
 
+// ── Auto-compile state ────────────────────────────────────────────────────
+let _autoCompileEnabled = localStorage.getItem('auto-compile') === 'true';
+let _autoCompileTimer   = null;
+
+function _updateAutoCompileBtn() {
+  const btn = document.getElementById('btn-auto-compile');
+  btn.classList.toggle('btn--active', _autoCompileEnabled);
+}
+_updateAutoCompileBtn();
+
 // ── Toolbar wiring ────────────────────────────────────────────────────────
 document.getElementById('btn-compile')
   .addEventListener('click', handleCompile);
+
+document.getElementById('btn-auto-compile')
+  .addEventListener('click', () => {
+    _autoCompileEnabled = !_autoCompileEnabled;
+    localStorage.setItem('auto-compile', _autoCompileEnabled);
+    _updateAutoCompileBtn();
+  });
 
 document.getElementById('btn-save')
   .addEventListener('click', () => zip.exportZip(store));
