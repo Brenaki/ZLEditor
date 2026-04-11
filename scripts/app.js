@@ -10,6 +10,7 @@ import { Editor }         from './ui/Editor.js';
 import { PdfViewer }      from './ui/PdfViewer.js';
 import { LogModal }       from './ui/LogModal.js';
 import { ZoteroPanel }    from './ui/ZoteroPanel.js';
+import { generateBibtex } from './utils/bibtex.js';
 
 // ── Services & State ──────────────────────────────────────────────────────
 const store   = new ProjectStore();
@@ -51,6 +52,50 @@ const pdfViewer = new PdfViewer({
 
 const logModal = new LogModal(document.getElementById('log-modal'));
 
+// ── Zotero bib helpers ────────────────────────────────────────────────────
+
+/**
+ * Detects the target .bib file for the project.
+ * 1. Reads \bibliography{} from root file
+ * 2. Falls back to the single .bib in the project
+ * 3. Falls back to creating zotero-refs.bib
+ * @param {ProjectStore} store
+ * @returns {{ bibName: string, created: boolean }}
+ */
+function findTargetBib(store) {
+  const rootContent = store.get(store.rootFile)?.content ?? '';
+  const match = rootContent.match(/\\bibliography\{([^}]+)\}/);
+  if (match) {
+    const bibName = match[1].trim() + '.bib';
+    const existed = !!store.get(bibName);
+    if (!existed) store.setText(bibName, '');
+    return { bibName, created: !existed };
+  }
+
+  const bibFiles = store.entries().filter(([name]) => name.endsWith('.bib'));
+  if (bibFiles.length === 1) return { bibName: bibFiles[0][0], created: false };
+
+  const newName = 'zotero-refs.bib';
+  if (!store.get(newName)) store.setText(newName, '');
+  return { bibName: newName, created: true };
+}
+
+/**
+ * Appends a BibTeX entry to the target .bib file if not already present.
+ * @param {ProjectStore} store
+ * @param {string} bibName
+ * @param {Object} ref
+ * @returns {'written' | 'duplicate'}
+ */
+function appendToBib(store, bibName, ref) {
+  const file = store.get(bibName);
+  const content = file?.content ?? '';
+  if (new RegExp(`@\\w+\\{${ref.key}[,\\s]`).test(content)) return 'duplicate';
+  const entry = generateBibtex(ref);
+  store.setText(bibName, content ? content + '\n\n' + entry : entry);
+  return 'written';
+}
+
 const zoteroPanel = new ZoteroPanel({
   panelEl:      document.getElementById('zotero-panel'),
   toggleEl:     document.getElementById('zotero-toggle'),
@@ -61,9 +106,22 @@ const zoteroPanel = new ZoteroPanel({
   searchEl:     document.getElementById('search-input'),
   listEl:       document.getElementById('ref-list'),
   onConnect:    handleZoteroConnect,
-  onInsert:     key => {
+  onInsert:     (key, ref) => {
     editor.insertAtCursor(`\\cite{${key}}`);
-    toast.show(`\\cite{${key}} inserido`);
+    const { bibName, created } = findTargetBib(store);
+    if (ref) {
+      const result = appendToBib(store, bibName, ref);
+      if (created) {
+        refreshFileTree();
+        toast.show(`\\cite{${key}} inserido → ${bibName} criado`);
+      } else if (result === 'duplicate') {
+        toast.show(`\\cite{${key}} inserido (já estava no .bib)`);
+      } else {
+        toast.show(`\\cite{${key}} inserido → ${bibName} atualizado`);
+      }
+    } else {
+      toast.show(`\\cite{${key}} inserido`);
+    }
   },
 });
 

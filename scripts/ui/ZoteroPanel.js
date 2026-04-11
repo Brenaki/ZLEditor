@@ -14,7 +14,7 @@ export class ZoteroPanel {
    *   searchEl: HTMLInputElement,
    *   listEl: HTMLElement,
    *   onConnect: () => void,
-   *   onInsert: (key: string) => void,
+   *   onInsert: (key: string, ref: Object) => void,
    * }} opts
    */
   constructor({ panelEl, toggleEl, toggleIconEl, dotEl, statusEl,
@@ -105,7 +105,8 @@ export class ZoteroPanel {
     `).join('');
 
     this._listEl.querySelectorAll('.ref-item').forEach(el => {
-      el.addEventListener('click', () => this._onInsert(el.dataset.key));
+      const ref = refs.find(r => r.key === el.dataset.key);
+      el.addEventListener('click', () => this._onInsert(el.dataset.key, ref));
     });
   }
 }
