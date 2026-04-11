@@ -1,3 +1,5 @@
+import { t } from '../i18n/index.js';
+
 /**
  * Quick-open overlay (Ctrl+P).
  * Supports two modes:
@@ -88,7 +90,7 @@ export class QuickOpen {
     this._selectedIdx = this._results.length > 0 ? 0 : -1;
 
     if (this._results.length === 0) {
-      this._list.innerHTML = '<div class="qo-empty">Nenhum resultado</div>';
+      this._list.innerHTML = `<div class="qo-empty">${t('quickopen.empty')}</div>`;
       return;
     }
 

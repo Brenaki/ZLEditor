@@ -1,3 +1,4 @@
+import { t, setLocale, detectLocale } from './i18n/index.js';
 import { ZoteroService }  from './services/ZoteroService.js';
 import { BibService }     from './services/BibService.js';
 import { CompileService } from './services/CompileService.js';
@@ -13,6 +14,9 @@ import { ZoteroPanel }    from './ui/ZoteroPanel.js';
 import { QuickOpen }      from './ui/QuickOpen.js';
 import { generateBibtex } from './utils/bibtex.js';
 
+// ── i18n: apply locale before any rendering ──────────────────────────────────
+setLocale(detectLocale());
+
 // ── Services & State ──────────────────────────────────────────────────────
 const store   = new ProjectStore();
 const zotero  = new ZoteroService();
@@ -20,7 +24,7 @@ const bib     = new BibService();
 const compile = new CompileService();
 const zip     = new ZipService();
 const storage = new StorageService('zotero-latex-autosave', {
-  onSave: () => toast.show('Sessão salva automaticamente'),
+  onSave: () => toast.show(t('toast.autosave')),
 });
 
 // ── UI Components ─────────────────────────────────────────────────────────
@@ -124,14 +128,14 @@ const zoteroPanel = new ZoteroPanel({
       const result = appendToBib(store, bibName, ref);
       if (created) {
         refreshFileTree();
-        toast.show(`\\cite{${key}} inserido → ${bibName} criado`);
+        toast.show(t('toast.cite.created', { key, bib: bibName }));
       } else if (result === 'duplicate') {
-        toast.show(`\\cite{${key}} inserido (já estava no .bib)`);
+        toast.show(t('toast.cite.duplicate', { key }));
       } else {
-        toast.show(`\\cite{${key}} inserido → ${bibName} atualizado`);
+        toast.show(t('toast.cite.updated', { key, bib: bibName }));
       }
     } else {
-      toast.show(`\\cite{${key}} inserido`);
+      toast.show(t('toast.cite.inserted', { key }));
     }
   },
 });
@@ -190,6 +194,10 @@ document.getElementById('btn-new-file')
 document.getElementById('btn-import')
   .addEventListener('click', () => document.getElementById('input-import').click());
 
+const localeSelect = document.getElementById('locale-select');
+localeSelect.value = detectLocale();
+localeSelect.addEventListener('change', () => setLocale(localeSelect.value));
+
 document.getElementById('input-import')
   .addEventListener('change', async e => {
     const file = e.target.files[0];
@@ -200,9 +208,9 @@ document.getElementById('input-import')
       refreshFileTree();
       openFile(store.rootFile);
       document.getElementById('project-name').textContent = store.name;
-      toast.show(`${store.files.size} arquivos importados`);
+      toast.show(t('toast.import.success', { count: store.files.size }));
     } catch (err) {
-      toast.show(`Erro ao importar: ${err.message}`);
+      toast.show(t('toast.import.error', { msg: err.message }));
     }
     e.target.value = '';
   });
@@ -217,7 +225,7 @@ document.getElementById('btn-restore')
       refreshFileTree();
       openFile(store.rootFile);
       document.getElementById('project-name').textContent = store.name;
-      toast.show('Sessão restaurada');
+      toast.show(t('toast.session.restored'));
     }
     document.getElementById('restore-modal').close();
   });
@@ -254,7 +262,7 @@ function handleNewFile(name) {
 }
 
 async function handleCompile() {
-  if (store.isEmpty()) { toast.show('Nenhum arquivo no projeto'); return; }
+  if (store.isEmpty()) { toast.show(t('toast.compile.empty')); return; }
 
   // Save current editor content
   if (_activeFile) store.setText(_activeFile, editor.getContent());
@@ -271,13 +279,13 @@ async function handleCompile() {
 
     if (result.success) {
       pdfViewer.show(result.pdf);
-      toast.show('Compilado com sucesso!');
+      toast.show(t('toast.compile.success'));
     } else {
       logModal.open(result.log, true);
-      toast.show('Erro de compilação — veja o log');
+      toast.show(t('toast.compile.error'));
     }
   } catch (err) {
-    toast.show(`Erro: ${err.message}`);
+    toast.show(t('toast.compile.fail', { msg: err.message }));
   } finally {
     btn.disabled = false;
     statusEl.innerHTML = '';
@@ -291,15 +299,15 @@ async function handleZoteroConnect() {
     if (source === 'mock') {
       zoteroPanel.setStatus('offline');
       zoteroPanel.setRefs(refs);
-      toast.show('Zotero offline — usando dados de exemplo');
+      toast.show(t('toast.zotero.offline'));
     } else {
       zoteroPanel.setCount(refs.length);
       zoteroPanel.setRefs(refs);
     }
   } catch {
     zoteroPanel.setStatus('offline');
-    zoteroPanel.showEmpty('Erro ao conectar');
-    toast.show('Erro ao conectar ao Zotero');
+    zoteroPanel.showEmpty(t('toast.zotero.error'));
+    toast.show(t('toast.zotero.error'));
   }
 }
 
@@ -327,6 +335,13 @@ function refreshFileTree() {
 
 // ── Init: check for saved session ─────────────────────────────────────────
 (function init() {
+  // Keep project-name translated when no project is loaded
+  const projectNameEl = document.getElementById('project-name');
+  if (store.isEmpty()) projectNameEl.textContent = t('project.noName');
+  window.addEventListener('localechange', () => {
+    if (store.isEmpty()) projectNameEl.textContent = t('project.noName');
+  });
+
   const saved = storage.load();
   if (saved) {
     const d = new Date(saved.savedAt);

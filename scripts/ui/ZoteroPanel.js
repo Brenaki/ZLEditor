@@ -1,3 +1,5 @@
+import { t } from '../i18n/index.js';
+
 /**
  * Retractable Zotero panel in the left column.
  * Handles connection, search, and ref insertion.
@@ -29,9 +31,15 @@ export class ZoteroPanel {
     this._allRefs    = [];
     this._isOpen     = false;
 
+    // Track current state for re-render on locale change
+    this._currentState = null;
+    this._currentCount = null;
+
     toggleEl.addEventListener('click', () => this.toggle());
     connectBtnEl.addEventListener('click', onConnect);
     searchEl.addEventListener('input', () => this._filter(searchEl.value));
+
+    window.addEventListener('localechange', () => this._rerender());
   }
 
   toggle() {
@@ -41,10 +49,13 @@ export class ZoteroPanel {
 
   /** @param {'connecting' | 'connected' | 'offline'} state */
   setStatus(state) {
+    this._currentState = state;
+    this._currentCount = null;
+
     const cfg = {
-      connecting: { dot: 'status-dot--pending',   text: 'Conectando…',           btn: null,         disabled: true  },
-      connected:  { dot: 'status-dot--connected', text: null,                    btn: 'Atualizar',   disabled: false },
-      offline:    { dot: 'status-dot--offline',   text: 'Demo (Zotero offline)', btn: 'Reconectar', disabled: false },
+      connecting: { dot: 'status-dot--pending',   text: t('zotero.status.connecting'), btn: null,                        disabled: true  },
+      connected:  { dot: 'status-dot--connected', text: null,                           btn: t('zotero.btn.update'),      disabled: false },
+      offline:    { dot: 'status-dot--offline',   text: t('zotero.status.offline'),    btn: t('zotero.btn.reconnect'),   disabled: false },
     }[state];
 
     this._dot.className = `status-dot ${cfg.dot}`;
@@ -55,9 +66,12 @@ export class ZoteroPanel {
 
   /** @param {number} count */
   setCount(count) {
+    this._currentCount = count;
+    this._currentState = null;
+
     this._dot.className = 'status-dot status-dot--connected';
-    this._statusEl.textContent = `${count} referências`;
-    this._connectBtn.textContent = 'Atualizar';
+    this._statusEl.textContent = t('zotero.refs.count', { count });
+    this._connectBtn.textContent = t('zotero.btn.update');
     this._connectBtn.disabled = false;
   }
 
@@ -76,6 +90,17 @@ export class ZoteroPanel {
     this._listEl.innerHTML = `<div class="empty-state" style="padding:0.75rem;font-size:12px;">${msg}</div>`;
   }
 
+  _rerender() {
+    if (this._currentCount !== null) {
+      this.setCount(this._currentCount);
+    } else if (this._currentState) {
+      this.setStatus(this._currentState);
+    }
+    if (this._allRefs.length > 0) {
+      this._render(this._allRefs);
+    }
+  }
+
   _filter(query) {
     const lq = query.toLowerCase();
     const filtered = this._allRefs.filter(r =>
@@ -89,7 +114,7 @@ export class ZoteroPanel {
 
   _render(refs) {
     if (refs.length === 0) {
-      this._listEl.innerHTML = '<div class="empty-state" style="padding:0.75rem;font-size:12px;">Nenhuma referência encontrada.</div>';
+      this._listEl.innerHTML = `<div class="empty-state" style="padding:0.75rem;font-size:12px;">${t('zotero.refs.none')}</div>`;
       return;
     }
 

@@ -1,3 +1,5 @@
+import { t } from '../i18n/index.js';
+
 /**
  * Modal dialog that displays the LaTeX compilation log.
  * Uses the native <dialog> element.
@@ -8,6 +10,7 @@ export class LogModal {
     this._dialog  = dialogEl;
     this._logEl   = dialogEl.querySelector('#log-output');
     this._lastLog = '';
+    this._isError = false;
 
     dialogEl.querySelector('#btn-close-log')
       .addEventListener('click', () => this.close());
@@ -22,6 +25,13 @@ export class LogModal {
     dialogEl.addEventListener('click', e => {
       if (e.target === dialogEl) this.close();
     });
+
+    window.addEventListener('localechange', () => {
+      if (this._dialog.open) {
+        this._dialog.querySelector('.modal__title').textContent =
+          t(this._isError ? 'log.title.error' : 'log.title.normal');
+      }
+    });
   }
 
   /**
@@ -31,9 +41,10 @@ export class LogModal {
    */
   open(log = '', isError = false) {
     this._lastLog = log;
-    this._logEl.textContent = log || '(sem log disponível)';
+    this._isError = isError;
+    this._logEl.textContent = log || t('log.empty');
     this._dialog.querySelector('.modal__title').textContent =
-      isError ? '⚠ Erro de compilação' : 'Log de compilação';
+      t(isError ? 'log.title.error' : 'log.title.normal');
     this._dialog.showModal();
   }
 

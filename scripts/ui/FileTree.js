@@ -1,3 +1,5 @@
+import { t } from '../i18n/index.js';
+
 const FILE_ICONS = {
   '.tex': '📄',
   '.bib': '📚',
@@ -35,10 +37,12 @@ export class FileTree {
     this._onNewFile = onNewFile;
     this._active    = null;
     this._root      = 'main.tex';
+    this._names     = [];
     this._contextMenu = null;
 
     document.addEventListener('click', () => this._closeMenu());
     document.addEventListener('keydown', e => { if (e.key === 'Escape') this._closeMenu(); });
+    window.addEventListener('localechange', () => this.render(this._names, this._active, this._root));
   }
 
   /**
@@ -47,11 +51,12 @@ export class FileTree {
    * @param {string} rootName
    */
   render(names, activeName, rootName) {
+    this._names  = names;
     this._active = activeName;
     this._root   = rootName;
 
     if (names.length === 0) {
-      this._list.innerHTML = '<div class="empty-state" style="padding:1rem;font-size:12px;">Importe um projeto .zip ou crie um arquivo.</div>';
+      this._list.innerHTML = `<div class="empty-state" style="padding:1rem;font-size:12px;">${t('filetree.empty')}</div>`;
       return;
     }
 
@@ -121,7 +126,7 @@ export class FileTree {
     if (name.endsWith('.tex')) {
       const setRoot = document.createElement('div');
       setRoot.className = 'context-menu__item';
-      setRoot.textContent = 'Definir como arquivo raiz';
+      setRoot.textContent = t('filetree.ctx.setroot');
       setRoot.addEventListener('click', () => { this._onSetRoot(name); this._closeMenu(); });
       menu.appendChild(setRoot);
     }
@@ -129,7 +134,7 @@ export class FileTree {
     const del = document.createElement('div');
     del.className = 'context-menu__item';
     del.style.color = 'var(--color-danger)';
-    del.textContent = 'Remover arquivo';
+    del.textContent = t('filetree.ctx.delete');
     del.addEventListener('click', () => { this._onDelete(name); this._closeMenu(); });
     menu.appendChild(del);
 

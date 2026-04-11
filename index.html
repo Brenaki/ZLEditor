@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Zotero LaTeX</title>
+  <title>ZLEditor</title>
   <link rel="stylesheet" href="styles/base.css">
   <link rel="stylesheet" href="styles/layout/editor.css">
 </head>
@@ -14,9 +14,9 @@
   <!-- ── Toolbar ── -->
   <header class="toolbar">
     <div class="toolbar__left">
-      <button class="btn btn--sm" id="btn-import">Importar .zip</button>
+      <button class="btn btn--sm" id="btn-import" data-i18n="btn.import">Importar .zip</button>
       <input type="file" id="input-import" accept=".zip" hidden>
-      <button class="btn btn--sm btn--ghost" id="btn-new-file">+ Arquivo</button>
+      <button class="btn btn--sm btn--ghost" id="btn-new-file" data-i18n="btn.newFile">+ Arquivo</button>
       <div class="toolbar__divider"></div>
     </div>
 
@@ -26,16 +26,24 @@
 
     <div class="toolbar__right">
       <span id="compile-status" class="toolbar__status"></span>
-      <button class="btn btn--sm btn--ghost" id="btn-log">Ver log</button>
-      <select id="engine-select" class="engine-select" title="Motor LaTeX">
+      <button class="btn btn--sm btn--ghost" id="btn-log" data-i18n="btn.log">Ver log</button>
+      <select id="engine-select" class="engine-select" data-i18n-title="engine.title" title="Motor LaTeX">
         <option value="pdflatex">pdflatex</option>
         <option value="xelatex">xelatex</option>
         <option value="lualatex">lualatex</option>
       </select>
-      <button class="btn btn--sm btn--ghost" id="btn-auto-compile" title="Auto-compilar ao editar">Auto</button>
-      <button class="btn btn--sm btn--primary" id="btn-compile">▶ Compilar</button>
+      <button class="btn btn--sm btn--ghost" id="btn-auto-compile"
+              data-i18n="btn.autoCompile"
+              data-i18n-title="btn.autoCompile.title"
+              title="Auto-compilar ao editar">Auto</button>
+      <select id="locale-select" class="engine-select" title="Language">
+        <option value="pt-BR">PT</option>
+        <option value="en">EN</option>
+        <option value="es">ES</option>
+      </select>
+      <button class="btn btn--sm btn--primary" id="btn-compile" data-i18n="btn.compile">▶ Compilar</button>
       <div class="toolbar__divider"></div>
-      <button class="btn btn--sm" id="btn-save">Salvar .zip</button>
+      <button class="btn btn--sm" id="btn-save" data-i18n="btn.save">Salvar .zip</button>
     </div>
   </header>
 
@@ -46,7 +54,7 @@
     <aside class="left-col">
       <div class="file-tree">
         <div class="file-tree__header">
-          <span class="file-tree__title">Arquivos</span>
+          <span class="file-tree__title" data-i18n="files.title">Arquivos</span>
         </div>
         <div class="file-tree__list" id="file-tree-list"></div>
       </div>
@@ -60,11 +68,12 @@
         <div class="zotero-panel__body">
           <div class="zotero-panel__status">
             <span class="status-dot status-dot--pending" id="status-dot"></span>
-            <span class="zotero-panel__status-text" id="status-text">Não conectado</span>
-            <button class="btn btn--sm btn--ghost" id="connect-btn">Conectar</button>
+            <span class="zotero-panel__status-text" id="status-text" data-i18n="zotero.status.disconnected">Não conectado</span>
+            <button class="btn btn--sm btn--ghost" id="connect-btn" data-i18n="btn.connect">Conectar</button>
           </div>
           <div class="zotero-panel__search">
             <input class="input" type="text" id="search-input"
+                   data-i18n-placeholder="search.placeholder"
                    placeholder="Buscar referências…" autocomplete="off">
           </div>
           <div class="zotero-panel__list" id="ref-list"></div>
@@ -86,7 +95,7 @@
         <span id="compile-timestamp"></span>
       </div>
       <div class="pdf-container" id="pdf-container">
-        <div class="empty-state">Clique em <strong>▶ Compilar</strong> para ver o PDF</div>
+        <div class="empty-state" data-i18n-html="pdf.empty">Clique em <strong>▶ Compilar</strong> para ver o PDF</div>
       </div>
     </div>
 
@@ -96,32 +105,32 @@
 <!-- ── Log modal ── -->
 <dialog id="log-modal">
   <div class="modal__header">
-    <span class="modal__title">Log de compilação</span>
+    <span class="modal__title" data-i18n="log.modal.title">Log de compilação</span>
   </div>
   <div class="modal__body">
     <pre class="log-output" id="log-output"></pre>
   </div>
   <div class="modal__footer">
-    <button class="btn" id="btn-copy-log">Copiar log</button>
-    <button class="btn btn--primary" id="btn-close-log">Fechar</button>
+    <button class="btn" id="btn-copy-log" data-i18n="btn.copyLog">Copiar log</button>
+    <button class="btn btn--primary" id="btn-close-log" data-i18n="btn.closeLog">Fechar</button>
   </div>
 </dialog>
 
 <!-- ── Restore session modal ── -->
 <dialog id="restore-modal">
   <div class="modal__header">
-    <span class="modal__title">Restaurar sessão</span>
+    <span class="modal__title" data-i18n="restore.modal.title">Restaurar sessão</span>
   </div>
   <div class="modal__body">
     <p class="restore-info">
-      Existe uma sessão salva automaticamente em
+      <span data-i18n="restore.body.prefix">Existe uma sessão salva automaticamente em</span>
       <strong id="restore-date"></strong>.<br>
-      Deseja restaurá-la?
+      <span data-i18n="restore.body.suffix">Deseja restaurá-la?</span>
     </p>
   </div>
   <div class="modal__footer">
-    <button class="btn" id="btn-discard">Descartar</button>
-    <button class="btn btn--primary" id="btn-restore">Restaurar</button>
+    <button class="btn" id="btn-discard" data-i18n="btn.discard">Descartar</button>
+    <button class="btn btn--primary" id="btn-restore" data-i18n="btn.restore">Restaurar</button>
   </div>
 </dialog>
 
@@ -130,6 +139,7 @@
 <div id="quick-open-overlay" class="qo-overlay">
   <div class="qo-container">
     <input id="quick-open-input" class="qo-input" type="text"
+           data-i18n-placeholder="quickopen.placeholder"
            placeholder="Buscar arquivo… ou % para buscar conteúdo" autocomplete="off" spellcheck="false">
     <div id="quick-open-list" class="qo-list"></div>
   </div>

@@ -1,3 +1,5 @@
+import { t } from '../i18n/index.js';
+
 /**
  * Displays a compiled PDF via blob URL inside an <embed> element.
  */
@@ -27,14 +29,14 @@ export class PdfViewer {
 
     this._container.innerHTML = `<embed src="${this._blobUrl}" type="application/pdf">`;
 
-    const now = new Date();
-    this._timestamp.textContent =
-      `Compilado às ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    const now  = new Date();
+    const time = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    this._timestamp.textContent = t('pdf.compiled.at', { time });
   }
 
   showEmpty() {
     if (this._blobUrl) { URL.revokeObjectURL(this._blobUrl); this._blobUrl = null; }
-    this._container.innerHTML = '<div class="empty-state">Clique em <strong>▶ Compilar</strong> para ver o PDF</div>';
+    this._container.innerHTML = `<div class="empty-state" data-i18n-html="pdf.empty">${t('pdf.empty')}</div>`;
     this._timestamp.textContent = '';
   }
 }
