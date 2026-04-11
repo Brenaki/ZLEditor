@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Editor CodeMirror com syntax highlight
-O sistema SHALL usar CodeMirror 6 como editor, com highlight para LaTeX e suporte a múltiplos arquivos abertos. O bundle SHALL ser servido localmente (gerado no Docker build via esbuild) sem dependências de CDN externo.
+O sistema SHALL usar CodeMirror 6 como editor, com highlight para LaTeX e suporte a múltiplos arquivos abertos. O bundle SHALL ser servido localmente (gerado no Docker build via esbuild) sem dependências de CDN externo. Any user-facing strings produced by the editor UI layer (e.g., status indicators, placeholder text) SHALL use `t()` for translation and SHALL update on `localechange`.
 
 #### Scenario: Abrir arquivo no editor
 - **WHEN** o usuário clica em um arquivo na file tree
@@ -21,6 +21,10 @@ O sistema SHALL usar CodeMirror 6 como editor, com highlight para LaTeX e suport
 #### Scenario: Seleção de texto visível com mouse
 - **WHEN** o usuário seleciona texto com o mouse ou teclado no editor
 - **THEN** a seleção é destacada com cor claramente visível e contrastante
+
+#### Scenario: Editor UI strings update on locale change
+- **WHEN** the user changes the active locale
+- **THEN** any visible UI strings owned by the editor component update to the new locale without requiring a file to be re-opened
 
 ### Requirement: Autocomplete de comandos LaTeX
 O sistema SHALL oferecer autocomplete de comandos LaTeX ao digitar `\`.
