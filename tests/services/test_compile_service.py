@@ -123,10 +123,10 @@ def test_run_latex_bibtex_not_called_when_no_bib():
         assert not any("bibtex" in c for c in calls)
 
 
-# ── VULN-001: Path traversal via realpath bypass ──────────────────────────────
+# ── Path traversal via realpath bypass ───────────────────────────────────────
 
 def test_write_files_symlink_traversal_blocked(tmp_path):
-    """VULN-001: realpath-based check must catch symlinks that escape tmpdir."""
+    """realpath-based check must catch symlinks that escape tmpdir."""
     import os
     outside = tmp_path / "outside"
     outside.mkdir()
@@ -145,10 +145,10 @@ def test_write_files_symlink_traversal_blocked(tmp_path):
     assert target.read_text() == "secret"
 
 
-# ── VULN-002: Unvalidated rootFile ────────────────────────────────────────────
+# ── Unvalidated rootFile ─────────────────────────────────────────────────────
 
 def test_compile_invalid_rootfile_with_slash(service):
-    """VULN-002: rootFile with path separator must be rejected."""
+    """rootFile with path separator must be rejected."""
     with patch("shutil.which", return_value="/usr/bin/pdflatex"):
         req = CompileRequest(rootFile="../etc/passwd", files=[])
         result = service.compile(req)
@@ -157,17 +157,17 @@ def test_compile_invalid_rootfile_with_slash(service):
 
 
 def test_compile_invalid_rootfile_with_dotdot(service):
-    """VULN-002: rootFile with '..' must be rejected."""
+    """rootFile with '..' must be rejected."""
     with patch("shutil.which", return_value="/usr/bin/pdflatex"):
         req = CompileRequest(rootFile="..\\main.tex", files=[])
         result = service.compile(req)
     assert result.success is False
 
 
-# ── VULN-010: File count / size limits ───────────────────────────────────────
+# ── File count / size limits ─────────────────────────────────────────────────
 
 def test_compile_request_too_many_files():
-    """VULN-010: More than 50 files must raise a validation error."""
+    """More than 50 files must raise a validation error."""
     from pydantic import ValidationError
     files = [FileEntry(name=f"f{i}.tex", content="x") for i in range(51)]
     with pytest.raises(ValidationError, match="Too many files"):
@@ -175,7 +175,7 @@ def test_compile_request_too_many_files():
 
 
 def test_compile_request_within_file_limit():
-    """VULN-010: Exactly 50 files must be accepted."""
+    """Exactly 50 files must be accepted."""
     files = [FileEntry(name=f"f{i}.tex", content="x") for i in range(50)]
     req = CompileRequest(rootFile="main.tex", files=files)
     assert len(req.files) == 50

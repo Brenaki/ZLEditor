@@ -9,6 +9,7 @@
 @import './components/toolbar.css';
 @import './components/modal.css';
 @import './components/quick-open.css';
+@import './components/ai-panel.css';
 
 /* ── Layout Imports ── */
 @import './layout/app.css';

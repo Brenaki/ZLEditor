@@ -79,6 +79,25 @@
           <div class="zotero-panel__list" id="ref-list"></div>
         </div>
       </div>
+
+      <!-- Retractable AI assistant panel -->
+      <div class="ai-panel" id="ai-panel">
+        <button class="ai-panel__toggle" id="ai-toggle">
+          <span>✨ IA</span>
+          <span style="display:flex;align-items:center;gap:4px;">
+            <span class="ai-panel__settings-btn" id="ai-settings-btn" title="Configurar IA">⚙</span>
+            <span class="ai-panel__toggle-icon" id="ai-toggle-icon">▲</span>
+          </span>
+        </button>
+        <div class="ai-panel__body">
+          <div class="ai-chat__history" id="ai-chat-history"></div>
+          <div class="ai-chat__input-row">
+            <textarea class="ai-chat__input" id="ai-chat-input"
+                      placeholder="Pergunte ao assistente…" rows="1"></textarea>
+            <button class="ai-chat__send-btn" id="ai-send-btn">▶</button>
+          </div>
+        </div>
+      </div>
     </aside>
 
     <!-- Center: CodeMirror editor -->
@@ -112,7 +131,128 @@
   </div>
   <div class="modal__footer">
     <button class="btn" id="btn-copy-log" data-i18n="btn.copyLog">Copiar log</button>
+    <button class="btn" id="btn-explain-log" style="display:none;">✨ Explicar</button>
     <button class="btn btn--primary" id="btn-close-log" data-i18n="btn.closeLog">Fechar</button>
+  </div>
+</dialog>
+
+<!-- ── AI Config modal ── -->
+<dialog id="ai-config-modal">
+  <div class="modal__header">
+    <span class="modal__title">Configurar Assistente de IA</span>
+  </div>
+  <div class="modal__body">
+
+    <div class="ai-config-section">
+      <label class="ai-config-label">Provedor ativo</label>
+      <select class="ai-config-select" id="ai-provider-select">
+        <option value="">— Nenhum —</option>
+        <option value="anthropic">Anthropic (Claude)</option>
+        <option value="openai">OpenAI (GPT)</option>
+        <option value="gemini">Google Gemini</option>
+        <option value="ollama">Ollama (local)</option>
+        <option value="deepseek">DeepSeek</option>
+      </select>
+    </div>
+
+    <div class="ai-config-section">
+      <label class="ai-config-label">Modo de contexto</label>
+      <div class="ai-context-modes">
+        <label class="ai-context-mode-option">
+          <input type="radio" name="ai-context-mode" value="none"> Nenhum
+        </label>
+        <label class="ai-context-mode-option">
+          <input type="radio" name="ai-context-mode" value="current-file"> Arquivo atual
+        </label>
+        <label class="ai-context-mode-option">
+          <input type="radio" name="ai-context-mode" value="project"> Projeto completo
+        </label>
+      </div>
+    </div>
+
+    <div class="ai-config-section" id="ai-keys-section">
+      <label class="ai-config-label">Chaves de API</label>
+
+      <div id="ai-anthropic-config">
+        <div class="ai-config-row">
+          <span style="font-size:var(--text-sm);flex:1;">Anthropic</span>
+          <span class="ai-provider-status" id="ai-anthropic-status">○ Não configurado</span>
+        </div>
+        <div class="ai-config-key-section">
+          <input class="input" type="password" id="ai-anthropic-key" placeholder="sk-ant-…">
+          <button class="btn btn--sm" data-provider="anthropic">Salvar</button>
+        </div>
+        <div class="ai-config-row" style="margin-top:var(--sp-2);">
+          <label class="ai-config-label" style="margin:0;flex:1;">Modelo</label>
+          <input class="input" type="text" id="ai-anthropic-model" placeholder="claude-sonnet-4-6" style="flex:2;">
+        </div>
+      </div>
+
+      <div id="ai-openai-config" style="margin-top:var(--sp-3);">
+        <div class="ai-config-row">
+          <span style="font-size:var(--text-sm);flex:1;">OpenAI</span>
+          <span class="ai-provider-status" id="ai-openai-status">○ Não configurado</span>
+        </div>
+        <div class="ai-config-key-section">
+          <input class="input" type="password" id="ai-openai-key" placeholder="sk-…">
+          <button class="btn btn--sm" data-provider="openai">Salvar</button>
+        </div>
+        <div class="ai-config-row" style="margin-top:var(--sp-2);">
+          <label class="ai-config-label" style="margin:0;flex:1;">Modelo</label>
+          <input class="input" type="text" id="ai-openai-model" placeholder="gpt-4o" style="flex:2;">
+        </div>
+      </div>
+
+      <div id="ai-gemini-config" style="margin-top:var(--sp-3);">
+        <div class="ai-config-row">
+          <span style="font-size:var(--text-sm);flex:1;">Google Gemini</span>
+          <span class="ai-provider-status" id="ai-gemini-status">○ Não configurado</span>
+        </div>
+        <div class="ai-config-key-section">
+          <input class="input" type="password" id="ai-gemini-key" placeholder="AIza…">
+          <button class="btn btn--sm" data-provider="gemini">Salvar</button>
+        </div>
+        <div class="ai-config-row" style="margin-top:var(--sp-2);">
+          <label class="ai-config-label" style="margin:0;flex:1;">Modelo</label>
+          <input class="input" type="text" id="ai-gemini-model" placeholder="gemini-1.5-pro" style="flex:2;">
+        </div>
+      </div>
+
+      <div id="ai-ollama-config" style="margin-top:var(--sp-3);">
+        <div class="ai-config-row">
+          <span style="font-size:var(--text-sm);flex:1;">Ollama (local)</span>
+          <span class="ai-provider-status" id="ai-ollama-status">○ Não configurado</span>
+        </div>
+        <div class="ai-config-key-section">
+          <input class="input" type="text" id="ai-ollama-baseurl" placeholder="http://localhost:11434">
+          <button class="btn btn--sm" data-provider="ollama" data-field="baseUrl">Salvar</button>
+        </div>
+        <div class="ai-config-row" style="margin-top:var(--sp-2);">
+          <label class="ai-config-label" style="margin:0;flex:1;">Modelo</label>
+          <input class="input" type="text" id="ai-ollama-model" placeholder="llama3" style="flex:2;">
+        </div>
+      </div>
+
+      <div id="ai-deepseek-config" style="margin-top:var(--sp-3);">
+        <div class="ai-config-row">
+          <span style="font-size:var(--text-sm);flex:1;">DeepSeek</span>
+          <span class="ai-provider-status" id="ai-deepseek-status">○ Não configurado</span>
+        </div>
+        <div class="ai-config-key-section">
+          <input class="input" type="password" id="ai-deepseek-key" placeholder="sk-…">
+          <button class="btn btn--sm" data-provider="deepseek">Salvar</button>
+        </div>
+        <div class="ai-config-row" style="margin-top:var(--sp-2);">
+          <label class="ai-config-label" style="margin:0;flex:1;">Modelo</label>
+          <input class="input" type="text" id="ai-deepseek-model" placeholder="deepseek-chat" style="flex:2;">
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="modal__footer">
+    <button class="btn" id="btn-save-ai-config">Salvar configurações</button>
+    <button class="btn btn--primary" id="btn-close-ai-config">Fechar</button>
   </div>
 </dialog>
 

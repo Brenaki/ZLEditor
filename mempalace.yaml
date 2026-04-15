@@ -1,0 +1,96 @@
+wing: zleditor
+rooms:
+- name: openspec-core
+  description: Stable OpenSpec capabilities under openspec/specs for editor, file tree, compile, preview, import/export, i18n, quick open, styling, local server, and Docker behavior.
+  keywords:
+  - openspec
+  - specs
+  - codemirror-editor
+  - file-tree
+  - latex-compile
+  - pdf-viewer
+  - project-import-export
+  - auto-compile
+  - quick-open
+  - i18n-core
+  - i18n-ui
+  - component-styles
+  - modular-scripts
+  - local-server-launch
+  - docker-deploy
+- name: openspec-zotero
+  description: OpenSpec capabilities for bibliography and Zotero workflows, including Better BibTeX search, cite autocomplete, bib write-back, and retractable UI behavior.
+  keywords:
+  - openspec
+  - zotero
+  - better-bibtex
+  - bib-autocomplete
+  - zotero-bib-write
+  - zotero-retractable
+  - citation
+  - bibliography
+- name: openspec-ai
+  description: Active add-ai-assistant change covering FastAPI migration, AI panel, provider config, SSE chat, MemPalace memory, and log explanation flow.
+  keywords:
+  - openspec
+  - add-ai-assistant
+  - ai-chat
+  - ai-config
+  - ai-panel
+  - fastapi-server
+  - mempalace
+  - litellm
+  - sse
+  - explain-error
+- name: openspec-desktop
+  description: Desktop launcher change set for packaging and desktop-specific runtime behavior, including release pipeline and LaTeX detection.
+  keywords:
+  - openspec
+  - desktop-launcher
+  - release-pipeline
+  - latex-detection
+  - desktop
+- name: backend
+  description: FastAPI backend under app/ with routers, services, providers, models, compile flow, config persistence, proxying, and MemPalace integration.
+  keywords:
+  - backend
+  - app
+  - fastapi
+  - routers
+  - services
+  - providers
+  - models
+  - compile
+  - ai
+  - config
+  - memory
+  - proxy
+- name: frontend
+  description: Static frontend in index.html, scripts/, and styles/ for the editor SPA, including file tree, Zotero UI, log modal, and AI panel surface.
+  keywords:
+  - frontend
+  - index.html
+  - scripts
+  - styles
+  - ui
+  - editor
+  - zotero
+  - logmodal
+  - ai-panel
+- name: infra
+  description: Runtime and delivery files such as Dockerfile, docker-compose, launch script, requirements, tests, and memory persistence paths.
+  keywords:
+  - docker
+  - docker-compose
+  - launch
+  - requirements
+  - pytest
+  - texlive
+  - .zlepalace
+  - .mempalace
+- name: general
+  description: Files that don't fit other rooms
+  keywords:
+  - zleditor
+  - latex
+  - overleaf-local

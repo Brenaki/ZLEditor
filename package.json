@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "description": "Local LaTeX editor with Zotero integration",
+  "scripts": {
+    "build": "esbuild scripts/editor-entry.js --bundle --format=iife --outfile=scripts/editor-bundle.js"
+  },
   "dependencies": {
     "@codemirror/autocomplete": "^6.12.0",
     "@codemirror/commands": "^6.3.0",

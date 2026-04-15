@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+litellm
+mempalace
+pydantic-settings
+httpx

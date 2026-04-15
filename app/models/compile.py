@@ -17,7 +17,7 @@ class CompileRequest(BaseModel):
     files: list[FileEntry] = []
     rootFile: str = "main.tex"
 
-    # VULN-010: Limit file count and total content size to prevent resource exhaustion
+    # Limit file count and total content size to prevent resource exhaustion
     @field_validator('files')
     @classmethod
     def limit_files(cls, v):

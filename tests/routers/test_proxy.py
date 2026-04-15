@@ -46,11 +46,11 @@ async def test_proxy_upstream_error(async_client):
     assert "error" in data
 
 
-# ── VULN-018: /bbt-proxy JSON-RPC method allowlist ───────────────────────────
+# ── /bbt-proxy JSON-RPC method allowlist ─────────────────────────────────────
 
 @pytest.mark.asyncio
 async def test_proxy_disallowed_method_blocked(async_client):
-    """VULN-018: Methods not in the allowlist must return 403."""
+    """Methods not in the allowlist must return 403."""
     resp = await async_client.post(
         "/bbt-proxy",
         content=b'{"method": "system.exec", "params": []}',
@@ -62,7 +62,7 @@ async def test_proxy_disallowed_method_blocked(async_client):
 
 @pytest.mark.asyncio
 async def test_proxy_missing_method_blocked(async_client):
-    """VULN-018: Requests with no 'method' field must return 403."""
+    """Requests with no 'method' field must return 403."""
     resp = await async_client.post(
         "/bbt-proxy",
         content=b'{"params": []}',
@@ -73,7 +73,7 @@ async def test_proxy_missing_method_blocked(async_client):
 
 @pytest.mark.asyncio
 async def test_proxy_invalid_json_rejected(async_client):
-    """VULN-018: Non-JSON body must return 400."""
+    """Non-JSON body must return 400."""
     resp = await async_client.post(
         "/bbt-proxy",
         content=b'not-json',
@@ -84,7 +84,7 @@ async def test_proxy_invalid_json_rejected(async_client):
 
 @pytest.mark.asyncio
 async def test_proxy_item_export_allowed(async_client):
-    """VULN-018: item.export is an allowed method and must be proxied."""
+    """item.export is an allowed method and must be proxied."""
     mock_response = MagicMock()
     mock_response.content = b'{"result": "bibtex data"}'
     mock_response.status_code = 200

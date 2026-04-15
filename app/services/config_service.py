@@ -82,7 +82,7 @@ class ConfigService:
 
     @staticmethod
     def _validate_base_url(url: str) -> bool:
-        """VULN-007: Validate Ollama baseUrl to prevent SSRF via arbitrary URL schemes."""
+        """Validate Ollama baseUrl to prevent SSRF via arbitrary URL schemes."""
         try:
             parsed = urlparse(url)
             return parsed.scheme in ('http', 'https') and bool(parsed.netloc)
@@ -93,7 +93,7 @@ class ConfigService:
         config = self.get_config()
 
         if "activeProvider" in update:
-            # VULN-014: Validate activeProvider against known list
+            # Validate activeProvider against known list
             active = update["activeProvider"]
             if active and active not in KNOWN_PROVIDERS:
                 raise HTTPException(status_code=400, detail=f"Unknown provider: {active}")
@@ -104,7 +104,7 @@ class ConfigService:
 
         provider = update.get("provider")
         if provider:
-            # VULN-014: Validate provider name against known list
+            # Validate provider name against known list
             if provider not in KNOWN_PROVIDERS:
                 raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
 
@@ -118,7 +118,7 @@ class ConfigService:
                 config.providers[provider]["model"] = update["model"]
 
             if "baseUrl" in update and provider == "ollama":
-                # VULN-007: Reject invalid or non-HTTP(S) base URLs
+                # Reject invalid or non-HTTP(S) base URLs
                 base_url = update["baseUrl"]
                 if base_url and not self._validate_base_url(base_url):
                     raise HTTPException(status_code=400, detail="Invalid baseUrl: must be http or https")

@@ -12,7 +12,7 @@ class MemoryService:
         self._palace_base = palace_base
 
     def _palace_path(self, project_id: str) -> str:
-        # VULN-008: Sanitize projectId to prevent path traversal
+        # Sanitize projectId to prevent path traversal
         if not _SAFE_PROJECT_ID_RE.match(project_id):
             project_id = "default"
         return str(self._palace_base / project_id)

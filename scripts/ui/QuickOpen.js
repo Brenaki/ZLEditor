@@ -95,7 +95,7 @@ export class QuickOpen {
       return;
     }
 
-    // VULN-013: Escape file names before injecting into innerHTML to prevent stored XSS
+    // Escape file names before injecting into innerHTML to prevent stored XSS
     this._list.innerHTML = this._results.map((r, i) => {
       const safeName = escapeHtml(r.name);
       const label = r.line !== null

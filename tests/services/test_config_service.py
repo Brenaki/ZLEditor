@@ -110,10 +110,10 @@ def test_corrupt_config_returns_defaults(config_service, tmp_path):
     assert config.activeProvider == ""
 
 
-# ── VULN-007: SSRF via unvalidated Ollama baseUrl ────────────────────────────
+# ── SSRF via unvalidated Ollama baseUrl ──────────────────────────────────────
 
 def test_apply_update_ollama_invalid_base_url_rejected(config_service):
-    """VULN-007: Non-HTTP(S) or malformed baseUrl must be rejected with 400."""
+    """Non-HTTP(S) or malformed baseUrl must be rejected with 400."""
     from fastapi import HTTPException
     with pytest.raises(HTTPException) as exc_info:
         config_service.apply_update({"provider": "ollama", "baseUrl": "file:///etc/passwd"})
@@ -121,7 +121,7 @@ def test_apply_update_ollama_invalid_base_url_rejected(config_service):
 
 
 def test_apply_update_ollama_javascript_url_rejected(config_service):
-    """VULN-007: javascript: scheme must be rejected."""
+    """javascript: scheme must be rejected."""
     from fastapi import HTTPException
     with pytest.raises(HTTPException) as exc_info:
         config_service.apply_update({"provider": "ollama", "baseUrl": "javascript:alert(1)"})
@@ -129,21 +129,21 @@ def test_apply_update_ollama_javascript_url_rejected(config_service):
 
 
 def test_apply_update_ollama_valid_https_url_accepted(config_service):
-    """VULN-007: A valid https:// baseUrl must be accepted."""
+    """A valid https:// baseUrl must be accepted."""
     resp = config_service.apply_update({"provider": "ollama", "baseUrl": "https://ollama.example.com"})
     assert resp.providers["ollama"].baseUrl == "https://ollama.example.com"
 
 
 def test_apply_update_ollama_valid_http_url_accepted(config_service):
-    """VULN-007: A valid http:// localhost URL must be accepted."""
+    """A valid http:// localhost URL must be accepted."""
     resp = config_service.apply_update({"provider": "ollama", "baseUrl": "http://localhost:11434"})
     assert resp.providers["ollama"].hasKey is True
 
 
-# ── VULN-014: Unvalidated provider name ──────────────────────────────────────
+# ── Unvalidated provider name ────────────────────────────────────────────────
 
 def test_apply_update_unknown_provider_rejected(config_service):
-    """VULN-014: An unknown provider name must be rejected with 400."""
+    """An unknown provider name must be rejected with 400."""
     from fastapi import HTTPException
     with pytest.raises(HTTPException) as exc_info:
         config_service.apply_update({"provider": "evil_provider"})
@@ -151,7 +151,7 @@ def test_apply_update_unknown_provider_rejected(config_service):
 
 
 def test_apply_update_unknown_active_provider_rejected(config_service):
-    """VULN-014: An unknown activeProvider must be rejected with 400."""
+    """An unknown activeProvider must be rejected with 400."""
     from fastapi import HTTPException
     with pytest.raises(HTTPException) as exc_info:
         config_service.apply_update({"activeProvider": "evil_provider"})
@@ -159,6 +159,6 @@ def test_apply_update_unknown_active_provider_rejected(config_service):
 
 
 def test_apply_update_known_active_provider_accepted(config_service):
-    """VULN-014: A known activeProvider must be accepted."""
+    """A known activeProvider must be accepted."""
     resp = config_service.apply_update({"activeProvider": "anthropic"})
     assert resp.activeProvider == "anthropic"

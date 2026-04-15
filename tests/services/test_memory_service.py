@@ -99,29 +99,29 @@ async def test_search_handles_exception(memory_service):
     assert result == ""
 
 
-# ── VULN-008: Path traversal via projectId ────────────────────────────────────
+# ── Path traversal via projectId ─────────────────────────────────────────────
 
 def test_palace_path_rejects_traversal(memory_service):
-    """VULN-008: projectId with path traversal chars must map to 'default'."""
+    """projectId with path traversal chars must map to 'default'."""
     path = memory_service._palace_path("../../etc/passwd")
     assert "etc" not in path
     assert path.endswith("default")
 
 
 def test_palace_path_rejects_slash(memory_service):
-    """VULN-008: projectId with '/' must map to 'default'."""
+    """projectId with '/' must map to 'default'."""
     path = memory_service._palace_path("foo/bar")
     assert path.endswith("default")
 
 
 def test_palace_path_accepts_valid_id(memory_service):
-    """VULN-008: A valid alphanumeric projectId must be used as-is."""
+    """A valid alphanumeric projectId must be used as-is."""
     path = memory_service._palace_path("my-project_01")
     assert path.endswith("my-project_01")
 
 
 def test_palace_path_rejects_too_long(memory_service):
-    """VULN-008: projectId longer than 64 chars must map to 'default'."""
+    """projectId longer than 64 chars must map to 'default'."""
     long_id = "a" * 65
     path = memory_service._palace_path(long_id)
     assert path.endswith("default")

@@ -119,7 +119,7 @@ export class ZoteroPanel {
       return;
     }
 
-    // VULN-004: Escape all reference fields before injecting into innerHTML to prevent stored XSS
+    // Escape all reference fields before injecting into innerHTML to prevent stored XSS
     this._listEl.innerHTML = refs.map(r => {
       const safeKey    = escapeHtml(r.key);
       const safeTitle  = escapeHtml(r.title);

@@ -6,13 +6,13 @@ router = APIRouter()
 
 BBT_URL = "http://localhost:23119/better-bibtex/json-rpc"
 
-# VULN-018: Allowlist of permitted Better BibTeX JSON-RPC methods
+# Allowlist of permitted Better BibTeX JSON-RPC methods
 ALLOWED_METHODS = {"item.search", "item.export", "item.attachments"}
 
 
 @router.post("/bbt-proxy")
 async def bbt_proxy(request: Request):
-    # VULN-018: Parse and validate the JSON-RPC method before proxying
+    # Parse and validate the JSON-RPC method before proxying
     try:
         body_json = await request.json()
     except Exception:

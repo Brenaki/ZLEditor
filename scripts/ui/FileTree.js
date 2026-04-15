@@ -61,7 +61,7 @@ export class FileTree {
       return;
     }
 
-    // VULN-003: Escape file names before injecting into innerHTML to prevent stored XSS
+    // Escape file names before injecting into innerHTML to prevent stored XSS
     this._list.innerHTML = names.map(name => {
       const safeName = escapeHtml(name);
       return `

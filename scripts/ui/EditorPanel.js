@@ -55,7 +55,7 @@ export class EditorPanel {
   }
 
   _renderChips() {
-    // VULN-013: Escape cite keys before injecting into innerHTML to prevent stored XSS
+    // Escape cite keys before injecting into innerHTML to prevent stored XSS
     this._chips.innerHTML = this._keys.map(k => {
       const safeKey = escapeHtml(k);
       return `<span class="cite-chip" data-key="${safeKey}">\\cite{${safeKey}}</span>`;

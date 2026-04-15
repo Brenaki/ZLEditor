@@ -31,6 +31,28 @@ A self-hosted, browser-based LaTeX editor with Zotero integration. Think of it a
 
 ---
 
+## Download
+
+Prebuilt desktop binaries are published in **GitHub Releases**:
+
+- Download the latest release from `https://github.com/Brenaki/ZLEditor/releases`
+- Windows: `ZLEditor-windows.exe`
+- Linux: `ZLEditor-linux`
+- macOS: `ZLEditor-macos`
+
+The desktop binary includes the local web app and opens it in your default browser, but **LaTeX is still a separate system dependency**:
+
+- Windows: install [MiKTeX](https://miktex.org/download)
+- Linux: install TeX Live, for example `sudo apt install texlive-full`
+- macOS: install [MacTeX](https://www.tug.org/mactex/)
+
+Platform notes:
+
+- macOS Gatekeeper may block the unsigned binary on first launch. If that happens, run `xattr -cr ZLEditor-macos` or allow it in `System Settings -> Privacy & Security`.
+- Windows Defender or other antivirus tools may flag PyInstaller binaries with a false positive. This is a common unsigned-binary behavior, not a known ZLEditor-specific infection.
+
+---
+
 ## Prerequisites
 
 ### 1. Zotero + Better BibTeX

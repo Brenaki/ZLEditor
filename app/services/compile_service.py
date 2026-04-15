@@ -28,7 +28,7 @@ class CompileService:
             self._last_log = log
             return CompileResult(success=False, log=log)
 
-        # VULN-002: Validate rootFile — must be a plain filename with no path separators or traversal
+        # Validate rootFile - must be a plain filename with no path separators or traversal
         root_file = request.rootFile
         if '/' in root_file or '..' in root_file or not root_file.strip():
             self._last_log = "rootFile inválido."
@@ -56,7 +56,7 @@ class CompileService:
     @staticmethod
     def _write_files(files, tmpdir: str) -> bool:
         has_bib = False
-        # VULN-001: Use realpath to prevent symlink/normpath bypass in traversal check
+        # Use realpath to prevent symlink/normpath bypass in traversal check
         real_tmpdir = os.path.realpath(tmpdir) + os.sep
         for f in files:
             name = os.path.normpath(f.name)

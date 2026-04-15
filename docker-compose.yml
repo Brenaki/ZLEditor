@@ -1,6 +1,8 @@
 services:
   latex-editor:
-    build: .
+    build:
+      context: .
+      target: runtime
     # network_mode: host shares the host's network namespace on Linux.
     # This means:
     #   - The app is accessible at http://localhost:8765 from the host browser
@@ -8,3 +10,5 @@ services:
     #   - Port mapping (ports:) is ignored and not needed with host networking
     network_mode: host
     restart: unless-stopped
+    volumes:
+      - ./.zlepalace:/app/.mempalace

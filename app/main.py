@@ -11,7 +11,7 @@ APP_DIR = Path(__file__).parent.parent
 
 app = FastAPI(title="ZLEditor")
 
-# VULN-012: Security headers middleware
+# Security headers middleware
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
@@ -34,7 +34,7 @@ app.include_router(ai.router)
 app.mount("/styles", StaticFiles(directory=str(APP_DIR / "styles")), name="styles")
 app.mount("/scripts", StaticFiles(directory=str(APP_DIR / "scripts")), name="scripts")
 
-# VULN-005: Files that must never be served directly via the SPA fallback route
+# Files that must never be served directly via the SPA fallback route
 BLOCKED_PATHS = {
     "config.json",
     "config.secrets.json",
@@ -54,7 +54,7 @@ async def root():
 
 @app.get("/{path:path}")
 async def spa_fallback(path: str):
-    # VULN-005: Block sensitive files and path traversal attempts
+    # Block sensitive files and path traversal attempts
     clean = path.lstrip('/')
     if (
         clean in BLOCKED_PATHS

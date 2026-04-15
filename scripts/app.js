@@ -11,6 +11,7 @@ import { Editor }         from './ui/Editor.js';
 import { PdfViewer }      from './ui/PdfViewer.js';
 import { LogModal }       from './ui/LogModal.js';
 import { ZoteroPanel }    from './ui/ZoteroPanel.js';
+import { AiPanel }        from './ui/AiPanel.js';
 import { QuickOpen }      from './ui/QuickOpen.js';
 import { generateBibtex } from './utils/bibtex.js';
 
@@ -65,7 +66,11 @@ const pdfViewer = new PdfViewer({
   timestampEl: document.getElementById('compile-timestamp'),
 });
 
-const logModal = new LogModal(document.getElementById('log-modal'));
+const logModal = new LogModal(document.getElementById('log-modal'), {
+  onExplain: (log) => {
+    aiPanel.sendMessage({ mode: 'explain-error', compilationLog: log });
+  },
+});
 
 // ── Zotero bib helpers ────────────────────────────────────────────────────
 
@@ -139,6 +144,175 @@ const zoteroPanel = new ZoteroPanel({
     }
   },
 });
+
+// ── AI panel ─────────────────────────────────────────────────────────────────
+let _aiConfig = null;
+
+async function loadAiConfig() {
+  try {
+    const resp = await fetch('/ai/config');
+    if (resp.ok) {
+      _aiConfig = await resp.json();
+      const active = _aiConfig.activeProvider;
+      const hasKey = active && _aiConfig.providers?.[active]?.hasKey;
+      logModal.setAiAvailable(!!hasKey);
+    }
+  } catch (_) {
+    _aiConfig = null;
+  }
+}
+
+const aiPanel = new AiPanel({
+  panelEl:      document.getElementById('ai-panel'),
+  toggleEl:     document.getElementById('ai-toggle'),
+  toggleIconEl: document.getElementById('ai-toggle-icon'),
+  settingsBtnEl: document.getElementById('ai-settings-btn'),
+  historyEl:    document.getElementById('ai-chat-history'),
+  inputEl:      document.getElementById('ai-chat-input'),
+  sendBtnEl:    document.getElementById('ai-send-btn'),
+  onOpenSettings: () => openAiConfigModal(),
+  getContext: () => {
+    const files = store.entries()
+      .filter(([, f]) => !f.binary)
+      .map(([name, f]) => ({ name, content: f.content ?? '' }));
+    const currentFile = _activeFile
+      ? { name: _activeFile, content: store.get(_activeFile)?.content ?? '' }
+      : null;
+    return { projectId: store.name || 'default', files, currentFile };
+  },
+});
+
+// ── AI config modal ───────────────────────────────────────────────────────────
+const aiConfigModal = document.getElementById('ai-config-modal');
+
+function openAiConfigModal() {
+  aiConfigModal.showModal();
+  _populateAiConfigModal();
+}
+
+async function _populateAiConfigModal() {
+  try {
+    const resp = await fetch('/ai/config');
+    if (!resp.ok) return;
+    const cfg = await resp.json();
+    _aiConfig = cfg;
+
+    // Active provider
+    const providerSelect = document.getElementById('ai-provider-select');
+    if (providerSelect) providerSelect.value = cfg.activeProvider || '';
+
+    // Context mode
+    const modeVal = cfg.contextMode || 'none';
+    document.querySelectorAll('input[name="ai-context-mode"]').forEach(radio => {
+      radio.checked = radio.value === modeVal;
+    });
+
+    // Provider statuses and models
+    const providerMap = {
+      anthropic: { statusId: 'ai-anthropic-status', modelId: 'ai-anthropic-model' },
+      openai:    { statusId: 'ai-openai-status',    modelId: 'ai-openai-model' },
+      gemini:    { statusId: 'ai-gemini-status',    modelId: 'ai-gemini-model' },
+      ollama:    { statusId: 'ai-ollama-status',    modelId: 'ai-ollama-model' },
+      deepseek:  { statusId: 'ai-deepseek-status',  modelId: 'ai-deepseek-model' },
+    };
+
+    for (const [name, ids] of Object.entries(providerMap)) {
+      const provCfg = cfg.providers?.[name];
+      const statusEl = document.getElementById(ids.statusId);
+      const modelEl  = document.getElementById(ids.modelId);
+      if (statusEl) {
+        statusEl.textContent = provCfg?.hasKey ? '● Configurado' : '○ Não configurado';
+        statusEl.className = `ai-provider-status ${provCfg?.hasKey
+          ? 'ai-provider-status--configured' : 'ai-provider-status--unconfigured'}`;
+      }
+      if (modelEl && provCfg?.model) modelEl.value = provCfg.model;
+    }
+
+    // Ollama base URL
+    const ollamaBaseUrlEl = document.getElementById('ai-ollama-baseurl');
+    if (ollamaBaseUrlEl && cfg.providers?.ollama?.baseUrl) {
+      ollamaBaseUrlEl.value = cfg.providers.ollama.baseUrl;
+    }
+  } catch (_) {}
+}
+
+async function _saveAiProviderKey(provider, field = 'key') {
+  const keyInput = field === 'baseUrl'
+    ? document.getElementById('ai-ollama-baseurl')
+    : document.getElementById(`ai-${provider}-key`);
+  const modelInput = document.getElementById(`ai-${provider}-model`);
+  if (!keyInput) return;
+
+  const update = { provider };
+  if (keyInput.value.trim()) {
+    update[field] = keyInput.value.trim();
+    keyInput.value = '';
+  }
+  if (modelInput?.value.trim()) {
+    update.model = modelInput.value.trim();
+  }
+
+  try {
+    const resp = await fetch('/ai/config', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(update),
+    });
+    if (resp.ok) {
+      _aiConfig = await resp.json();
+      _populateAiConfigModal();
+      toast.show('Configuração salva.');
+    }
+  } catch (err) {
+    toast.show(`Erro: ${err.message}`);
+  }
+}
+
+document.getElementById('btn-save-ai-config')
+  ?.addEventListener('click', async () => {
+    const providerSelect = document.getElementById('ai-provider-select');
+    const contextMode = document.querySelector('input[name="ai-context-mode"]:checked')?.value;
+
+    const update = {};
+    if (providerSelect) update.activeProvider = providerSelect.value;
+    if (contextMode) update.contextMode = contextMode;
+
+    try {
+      const resp = await fetch('/ai/config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(update),
+      });
+      if (resp.ok) {
+        _aiConfig = await resp.json();
+        const active = _aiConfig.activeProvider;
+        const hasKey = active && _aiConfig.providers?.[active]?.hasKey;
+        logModal.setAiAvailable(!!hasKey);
+        toast.show('Configuração salva.');
+      }
+    } catch (err) {
+      toast.show(`Erro: ${err.message}`);
+    }
+  });
+
+document.getElementById('btn-close-ai-config')
+  ?.addEventListener('click', () => aiConfigModal.close());
+
+aiConfigModal?.addEventListener('click', e => {
+  if (e.target === aiConfigModal) aiConfigModal.close();
+});
+
+// Wire per-provider save buttons
+document.querySelectorAll('[data-provider]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const provider = btn.dataset.provider;
+    const field = btn.dataset.field || 'key';
+    _saveAiProviderKey(provider, field);
+  });
+});
+
+// Load AI config on start
+loadAiConfig();
 
 const quickOpen = new QuickOpen({
   overlayEl: document.getElementById('quick-open-overlay'),

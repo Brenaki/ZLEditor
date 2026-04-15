@@ -43,14 +43,14 @@ COPY . .
 # Overwrite/add the generated editor bundle
 COPY --from=builder /build/editor-bundle.js ./scripts/editor-bundle.js
 
-# VULN-015: Run as a non-root user to limit blast radius of any RCE
+# Run as a non-root user to limit blast radius of any RCE
 RUN useradd -r -s /bin/false appuser && \
     chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 8765
 
-# VULN-009: Bind to 127.0.0.1 so the service is not directly reachable from other
+# Bind to 127.0.0.1 so the service is not directly reachable from other
 # containers or the host network without an explicit port mapping or reverse proxy.
 # Change to 0.0.0.0 only if you are running behind a trusted reverse proxy.
 CMD ["uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8765"]
