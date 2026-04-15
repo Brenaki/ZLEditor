@@ -1,8 +1,8 @@
 from typing import Any, Optional
 from pydantic import BaseModel, field_validator
 
-_MAX_FILES = 50
-_MAX_CONTENT_BYTES = 10 * 1024 * 1024  # 10 MB total
+_MAX_FILES = 500
+_MAX_CONTENT_BYTES = 50 * 1024 * 1024  # 50 MB total
 
 
 class FileEntry(BaseModel):

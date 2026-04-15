@@ -68,6 +68,11 @@ const pdfViewer = new PdfViewer({
 
 const logModal = new LogModal(document.getElementById('log-modal'), {
   onExplain: (log) => {
+    const active = _aiConfig?.activeProvider;
+    const hasKey = active && _aiConfig?.providers?.[active]?.hasKey;
+    if (!hasKey) {
+      return;
+    }
     aiPanel.sendMessage({ mode: 'explain-error', compilationLog: log });
   },
 });
@@ -470,7 +475,7 @@ async function handleZoteroConnect() {
   zoteroPanel.setStatus('connecting');
   try {
     const { refs, source } = await zotero.fetchAll();
-    if (source === 'mock') {
+    if (source === 'offline') {
       zoteroPanel.setStatus('offline');
       zoteroPanel.setRefs(refs);
       toast.show(t('toast.zotero.offline'));

@@ -12,10 +12,11 @@ def service():
     return CompileService()
 
 
-def _run_result(returncode=0, stdout=""):
+def _run_result(returncode=0, stdout="", stderr=""):
     r = MagicMock()
     r.returncode = returncode
     r.stdout = stdout
+    r.stderr = stderr
     return r
 
 
@@ -105,13 +106,14 @@ def test_write_files_no_bib(tmp_path):
     assert has_bib is False
 
 
-def test_run_latex_bibtex_called_when_has_bib():
+def test_run_latex_bibtex_called_when_aux_requests_it(tmp_path):
+    (tmp_path / "main.aux").write_text("\\bibdata{refs}\n", encoding="utf-8")
     with patch("subprocess.run") as mock_run:
         mock_run.return_value = _run_result(0, "ok")
         with patch("os.path.exists", return_value=False):
-            CompileService._run_latex("main.tex", "/tmp/test", has_bib=True)
-        calls = [str(c) for c in mock_run.call_args_list]
-        assert any("bibtex" in c for c in calls)
+            CompileService._run_latex("main.tex", str(tmp_path), has_bib=True)
+        commands = [call.args[0] for call in mock_run.call_args_list]
+        assert any(cmd[0] == "bibtex" for cmd in commands)
 
 
 def test_run_latex_bibtex_not_called_when_no_bib():
@@ -119,8 +121,23 @@ def test_run_latex_bibtex_not_called_when_no_bib():
         mock_run.return_value = _run_result(0, "ok")
         with patch("os.path.exists", return_value=False):
             CompileService._run_latex("main.tex", "/tmp/test", has_bib=False)
-        calls = [str(c) for c in mock_run.call_args_list]
-        assert not any("bibtex" in c for c in calls)
+        commands = [call.args[0] for call in mock_run.call_args_list]
+        assert not any(cmd[0] == "bibtex" for cmd in commands)
+
+
+def test_run_latex_bibtex_not_called_without_bibdata(tmp_path):
+    (tmp_path / "main.pdf").write_bytes(b"%PDF-1.4")
+    (tmp_path / "main.log").write_text("no bibdata", encoding="utf-8")
+    (tmp_path / "main.aux").write_text("\\relax\n", encoding="utf-8")
+
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value = _run_result(0, "ok")
+        log, pdf = CompileService._run_latex("main.tex", str(tmp_path), has_bib=True)
+
+    commands = [call.args[0] for call in mock_run.call_args_list]
+    assert not any(cmd[0] == "bibtex" for cmd in commands)
+    assert pdf == b"%PDF-1.4"
+    assert "===== main.log =====" in log
 
 
 # ── Path traversal via realpath bypass ───────────────────────────────────────
@@ -167,15 +184,68 @@ def test_compile_invalid_rootfile_with_dotdot(service):
 # ── File count / size limits ─────────────────────────────────────────────────
 
 def test_compile_request_too_many_files():
-    """More than 50 files must raise a validation error."""
+    """More than 500 files must raise a validation error."""
     from pydantic import ValidationError
-    files = [FileEntry(name=f"f{i}.tex", content="x") for i in range(51)]
+    files = [FileEntry(name=f"f{i}.tex", content="x") for i in range(501)]
     with pytest.raises(ValidationError, match="Too many files"):
         CompileRequest(rootFile="main.tex", files=files)
 
 
 def test_compile_request_within_file_limit():
-    """Exactly 50 files must be accepted."""
-    files = [FileEntry(name=f"f{i}.tex", content="x") for i in range(50)]
+    """Exactly 500 files must be accepted."""
+    files = [FileEntry(name=f"f{i}.tex", content="x") for i in range(500)]
     req = CompileRequest(rootFile="main.tex", files=files)
-    assert len(req.files) == 50
+    assert len(req.files) == 500
+
+
+def test_run_latex_includes_stdout_and_stderr(tmp_path):
+    pdf_path = tmp_path / "main.pdf"
+    pdf_path.write_bytes(b"%PDF-1.4")
+    (tmp_path / "main.log").write_text("Latexmk-ish details", encoding="utf-8")
+
+    with patch("subprocess.run", return_value=_run_result(0, "compiler out", "compiler err")):
+        log, pdf = CompileService._run_latex("main.tex", str(tmp_path), has_bib=False)
+
+    assert pdf == b"%PDF-1.4"
+    assert "$ pdflatex -interaction=nonstopmode -halt-on-error main.tex" in log
+    assert "stdout:" in log
+    assert "compiler out" in log
+    assert "stderr:" in log
+    assert "compiler err" in log
+    assert "===== main.log =====" in log
+    assert "Latexmk-ish details" in log
+
+
+def test_run_latex_fails_when_second_pass_fails(tmp_path):
+    (tmp_path / "main.log").write_text("error details", encoding="utf-8")
+
+    with patch(
+        "subprocess.run",
+        side_effect=[
+            _run_result(0, "first"),
+            _run_result(1, "second", "boom"),
+        ],
+    ):
+        log, pdf = CompileService._run_latex("main.tex", str(tmp_path), has_bib=False)
+
+    assert pdf is None
+    assert "[exit 1]" in log
+    assert "boom" in log
+
+
+def test_run_latex_fails_when_bibtex_fails(tmp_path):
+    (tmp_path / "main.log").write_text("bib failure details", encoding="utf-8")
+    (tmp_path / "main.aux").write_text("\\bibdata{refs}\n", encoding="utf-8")
+
+    with patch(
+        "subprocess.run",
+        side_effect=[
+            _run_result(0, "first pass"),
+            _run_result(1, "bibtex out", "bibtex err"),
+        ],
+    ):
+        log, pdf = CompileService._run_latex("main.tex", str(tmp_path), has_bib=True)
+
+    assert pdf is None
+    assert "$ bibtex main" in log
+    assert "bibtex err" in log

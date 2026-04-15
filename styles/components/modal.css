@@ -40,6 +40,22 @@ dialog::backdrop {
 }
 
 /* Log modal */
+.log-summary {
+  margin-bottom: var(--sp-3);
+  padding: var(--sp-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-accent-subtle);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.log-summary--error {
+  background: color-mix(in srgb, white 88%, var(--color-danger));
+  border-color: color-mix(in srgb, white 55%, var(--color-danger));
+}
+
 .log-output {
   font-family: var(--font-mono);
   font-size: var(--text-sm);

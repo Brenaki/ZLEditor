@@ -1,4 +1,4 @@
-import JSZip from 'https://esm.sh/jszip@3';
+import JSZip from '../vendor/jszip.js';
 
 /**
  * Returns the common root folder prefix to strip, or '' if none.

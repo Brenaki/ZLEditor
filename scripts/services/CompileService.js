@@ -25,7 +25,7 @@ export class CompileService {
     }
 
     const data = await resp.json().catch(() => ({ log: `HTTP ${resp.status}` }));
-    return { success: false, log: data.log ?? 'Erro desconhecido' };
+    return { success: false, log: this._formatErrorLog(data, resp.status) };
   }
 
   async _fetchLog() {
@@ -36,5 +36,23 @@ export class CompileService {
     } catch {
       return '';
     }
+  }
+
+  _formatErrorLog(data, status) {
+    if (data?.log) return data.log;
+
+    if (Array.isArray(data?.detail) && data.detail.length) {
+      const lines = data.detail.map(item => {
+        const loc = Array.isArray(item.loc) ? item.loc.join('.') : 'request';
+        return `${loc}: ${item.msg}`;
+      });
+      return [`Falha de validação da requisição de compilação (HTTP ${status}).`, ...lines].join('\n');
+    }
+
+    if (typeof data?.detail === 'string' && data.detail.trim()) {
+      return data.detail;
+    }
+
+    return `Erro HTTP ${status}`;
   }
 }

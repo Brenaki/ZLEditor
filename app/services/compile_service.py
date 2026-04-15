@@ -80,26 +80,62 @@ class CompileService:
     def _run_latex(root_file: str, tmpdir: str, has_bib: bool, engine: str = "pdflatex"):
         root_base = os.path.splitext(root_file)[0]
         log_parts = []
+        cache_dir = Path(tmpdir) / ".cache"
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        run_env = os.environ.copy()
+        run_env.setdefault("HOME", tmpdir)
+        run_env.setdefault("XDG_CACHE_HOME", str(cache_dir))
 
         def run(*cmd):
             r = subprocess.run(
                 list(cmd), cwd=tmpdir,
-                capture_output=True, text=True, timeout=60,
+                capture_output=True, text=True, timeout=60, env=run_env,
             )
-            log_parts.append(r.stdout)
+            label = " ".join(cmd)
+            sections = [f"$ {label}", f"[exit {r.returncode}]"]
+            if r.stdout:
+                sections.append("stdout:")
+                sections.append(r.stdout.rstrip())
+            if r.stderr:
+                sections.append("stderr:")
+                sections.append(r.stderr.rstrip())
+            log_parts.append("\n".join(sections).rstrip())
             return r
+
+        def append_tex_log():
+            tex_log_path = Path(tmpdir) / f"{root_base}.log"
+            if not tex_log_path.exists():
+                return
+            try:
+                tex_log = tex_log_path.read_text(encoding="utf-8", errors="replace").rstrip()
+            except OSError:
+                return
+            if not tex_log:
+                return
+            log_parts.append(f"===== {root_base}.log =====\n{tex_log}")
 
         latex_args = [engine, "-interaction=nonstopmode", "-halt-on-error", root_file]
 
         r = run(*latex_args)
         if r.returncode != 0:
+            append_tex_log()
             return "\n".join(log_parts), None
 
-        if has_bib:
-            run("bibtex", root_base)
+        if has_bib and CompileService._aux_requests_bibliography(root_base, tmpdir):
+            bib = run("bibtex", root_base)
+            if bib.returncode != 0:
+                append_tex_log()
+                return "\n".join(log_parts), None
 
-        run(*latex_args)
-        run(*latex_args)
+        r = run(*latex_args)
+        if r.returncode != 0:
+            append_tex_log()
+            return "\n".join(log_parts), None
+
+        r = run(*latex_args)
+        append_tex_log()
+        if r.returncode != 0:
+            return "\n".join(log_parts), None
 
         pdf_path = os.path.join(tmpdir, root_base + ".pdf")
         if not os.path.exists(pdf_path):
@@ -107,3 +143,14 @@ class CompileService:
 
         with open(pdf_path, "rb") as f:
             return "\n".join(log_parts), f.read()
+
+    @staticmethod
+    def _aux_requests_bibliography(root_base: str, tmpdir: str) -> bool:
+        aux_path = Path(tmpdir) / f"{root_base}.aux"
+        if not aux_path.exists():
+            return False
+        try:
+            aux_text = aux_path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            return False
+        return "\\bibdata" in aux_text

@@ -3,19 +3,14 @@ FROM node:20-alpine AS builder
 
 WORKDIR /build
 
-COPY package.json ./
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci
 
-# Only copy files needed for the bundle
-COPY scripts/editor-entry.js          ./scripts/
+# Only copy files needed for the frontend bundles
+COPY scripts/editor-entry.js ./scripts/
 COPY scripts/utils/latex-completions.js ./scripts/utils/
 
-RUN npx esbuild scripts/editor-entry.js \
-      --bundle \
-      --format=iife \
-      --outfile=editor-bundle.js \
-      --minify \
-      --log-level=info
+RUN npm run build
 
 
 # ── Stage 2: Runtime ──────────────────────────────────────────────────────────
@@ -40,8 +35,9 @@ RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 # Copy the application files
 COPY . .
 
-# Overwrite/add the generated editor bundle
-COPY --from=builder /build/editor-bundle.js ./scripts/editor-bundle.js
+# Overwrite/add the generated frontend bundles
+COPY --from=builder /build/scripts/editor-bundle.js ./scripts/editor-bundle.js
+COPY --from=builder /build/scripts/vendor/jszip.js ./scripts/vendor/jszip.js
 
 # Run as a non-root user to limit blast radius of any RCE
 RUN useradd -r -s /bin/false appuser && \

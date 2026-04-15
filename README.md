@@ -1,6 +1,6 @@
 # ZLEditor
 
-A self-hosted, browser-based LaTeX editor with Zotero integration. Think of it as a local Overleaf: import a project, write LaTeX with syntax highlighting and autocomplete, search your Zotero library for references, compile, and see the PDF — all in one place, without any cloud service.
+A self-hosted, browser-based LaTeX editor. Think of it as a local Overleaf: import a project, write LaTeX with syntax highlighting and autocomplete, compile, and see the PDF locally. Zotero integration is optional.
 
 ```
 ┌─────────────────┬──────────────────────┬──────────────────────┐
@@ -20,12 +20,13 @@ A self-hosted, browser-based LaTeX editor with Zotero integration. Think of it a
 ## Features
 
 - **CodeMirror 6 editor** with LaTeX syntax highlighting
-- **Autocomplete** — type `\` for LaTeX commands, `\cite{` for your Zotero citekeys
+- **Autocomplete** — type `\` for LaTeX commands, `\cite{` for citekeys from your local `.bib` files and, optionally, Zotero
 - **LaTeX compilation** via `pdflatex`, `xelatex`, or `lualatex` with inline PDF preview
 - **Compilation log modal** with copy button for debugging errors
 - **Project import/export** as `.zip` (supports images and binary files)
 - **File tree** — create new files or import an existing project
-- **Zotero panel** — search your library and click any reference to insert `\cite{key}` at the cursor
+- **Local `.bib` workflow** — import or edit your own `.bib` files and use their citekeys directly in autocomplete
+- **Optional Zotero panel** — search your library and click any reference to insert `\cite{key}` at the cursor
 - **Autosave** to localStorage with restore prompt on reload
 - **Configurable root file** (defaults to `main.tex`)
 
@@ -55,19 +56,7 @@ Platform notes:
 
 ## Prerequisites
 
-### 1. Zotero + Better BibTeX
-
-ZLEditor connects to your local Zotero library to pull citation keys.
-
-1. Install [Zotero](https://www.zotero.org/download/)
-2. Install the **Better BibTeX** plugin from:
-   **https://github.com/retorquere/zotero-better-bibtex**
-   (download the `.xpi` file from Releases, then in Zotero: `Tools → Add-ons → gear icon → Install Add-on From File`)
-3. Keep Zotero **open and running** while using ZLEditor
-
-> The Zotero panel is optional — you can still edit and compile LaTeX without it.
-
-### 2. Docker
+### 1. Docker
 
 - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/) installed
 
@@ -121,11 +110,17 @@ You have two options:
 The editor provides:
 - Syntax highlighting for LaTeX
 - **`\` autocomplete** — a list of common LaTeX commands
-- **`\cite{` autocomplete** — populated from your Zotero library (requires Zotero + BBT running)
+- **`\cite{` autocomplete** — populated from the `.bib` files in your project, with Zotero as an optional extra source
 
-### Searching Zotero references
+### Optional Zotero integration
 
-Open the **Zotero** panel in the left sidebar. Type to search your library. Click any result to insert `\cite{citekey}` at the current cursor position.
+If you want to search an external library instead of maintaining your own `.bib` files, you can enable Zotero:
+
+1. Install [Zotero](https://www.zotero.org/download/)
+2. Install the **Better BibTeX** plugin from `https://github.com/retorquere/zotero-better-bibtex`
+3. Keep Zotero open while using ZLEditor
+
+Then use the **Zotero** panel in the sidebar to search your library and insert `\cite{citekey}` entries.
 
 ### Compiling
 

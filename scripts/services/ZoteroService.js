@@ -2,34 +2,36 @@ import { makeCiteKey } from '../utils/bibtex.js';
 
 const BBT_PROXY = '/bbt-proxy';
 
-const MOCK_REFS = [
-  { key: 'bussab2017estatistica', type: 'book', title: 'Estatística Básica', author: 'Bussab, Wilton O. and Morettin, Pedro A.', year: '2017', publisher: 'Saraiva', edition: '9', journal: '' },
-  { key: 'knuth1984texbook',      type: 'book', title: 'The TeXbook',          author: 'Knuth, Donald E.',                          year: '1984', publisher: 'Addison-Wesley',  journal: '' },
-  { key: 'lamport1994latex',      type: 'book', title: 'LaTeX: A Document Preparation System', author: 'Lamport, Leslie',           year: '1994', publisher: 'Addison-Wesley',  journal: '' },
-  { key: 'cormen2009algorithms',  type: 'book', title: 'Introduction to Algorithms',           author: 'Cormen, Thomas H. and Leiserson, Charles E.', year: '2009', publisher: 'MIT Press', journal: '' },
-];
-
 /**
  * Communicates with Zotero via Better BibTeX JSON-RPC proxy.
  */
 export class ZoteroService {
   /**
    * Fetches all items from the Zotero library.
-   * Returns mock data if Zotero is unreachable.
-   * @returns {Promise<{ refs: Array, source: 'zotero' | 'mock' }>}
+   * Returns an empty list if Zotero is unreachable or has no results.
+   * @returns {Promise<{ refs: Array, source: 'zotero' | 'offline' }>}
    */
   async fetchAll() {
-    const response = await fetch(BBT_PROXY, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', method: 'item.search', params: [' '], id: 1 }),
-    });
+    let response;
+    try {
+      response = await fetch(BBT_PROXY, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', method: 'item.search', params: [' '], id: 1 }),
+      });
+    } catch {
+      return { refs: [], source: 'offline' };
+    }
+
+    if (!response.ok) {
+      return { refs: [], source: 'offline' };
+    }
 
     const data = await response.json();
     const items = data.result ?? [];
 
     if (items.length === 0) {
-      return { refs: MOCK_REFS, source: 'mock' };
+      return { refs: [], source: 'offline' };
     }
 
     return { refs: this.#mapItems(items), source: 'zotero' };
