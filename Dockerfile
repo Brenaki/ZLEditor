@@ -19,18 +19,23 @@ RUN npx esbuild scripts/editor-entry.js \
 
 
 # ── Stage 2: Runtime ──────────────────────────────────────────────────────────
-FROM debian:bookworm-slim
+FROM debian:bookworm-slim AS runtime
 
-# Install Python 3 and TeX Live full
+# Install Python 3, pip, and TeX Live full
 # texlive-full pulls everything including pdflatex, bibtex, and all packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       python3 \
+      python3-pip \
       texlive-full \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
+# Install Python dependencies
+COPY requirements.txt ./
+RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 
 # Copy the application files
 COPY . .
@@ -38,6 +43,23 @@ COPY . .
 # Overwrite/add the generated editor bundle
 COPY --from=builder /build/editor-bundle.js ./scripts/editor-bundle.js
 
+# VULN-015: Run as a non-root user to limit blast radius of any RCE
+RUN useradd -r -s /bin/false appuser && \
+    chown -R appuser:appuser /app
+USER appuser
+
 EXPOSE 8765
 
-CMD ["python3", "server.py"]
+# VULN-009: Bind to 127.0.0.1 so the service is not directly reachable from other
+# containers or the host network without an explicit port mapping or reverse proxy.
+# Change to 0.0.0.0 only if you are running behind a trusted reverse proxy.
+CMD ["uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8765"]
+
+
+# ── Stage 3: Test ─────────────────────────────────────────────────────────────
+FROM runtime AS test
+
+COPY requirements-dev.txt ./
+RUN pip3 install --no-cache-dir --break-system-packages -r requirements-dev.txt
+
+CMD ["pytest", "--cov=app", "--cov-fail-under=90", "-v"]

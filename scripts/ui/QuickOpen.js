@@ -1,4 +1,5 @@
 import { t } from '../i18n/index.js';
+import { escapeHtml } from '../utils/escape.js';
 
 /**
  * Quick-open overlay (Ctrl+P).
@@ -94,10 +95,12 @@ export class QuickOpen {
       return;
     }
 
+    // VULN-013: Escape file names before injecting into innerHTML to prevent stored XSS
     this._list.innerHTML = this._results.map((r, i) => {
+      const safeName = escapeHtml(r.name);
       const label = r.line !== null
-        ? `<span class="qo-file">${r.name}:${r.line}</span><span class="qo-context"> — ${this._escape(r.context)}</span>`
-        : `<span class="qo-file">${r.name}</span>`;
+        ? `<span class="qo-file">${safeName}:${r.line}</span><span class="qo-context"> — ${this._escape(r.context)}</span>`
+        : `<span class="qo-file">${safeName}</span>`;
       return `<div class="qo-item${i === 0 ? ' qo-item--selected' : ''}" data-idx="${i}">${label}</div>`;
     }).join('');
 

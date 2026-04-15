@@ -1,4 +1,5 @@
 import { t } from '../i18n/index.js';
+import { escapeHtml } from '../utils/escape.js';
 
 const FILE_ICONS = {
   '.tex': '📄',
@@ -60,19 +61,23 @@ export class FileTree {
       return;
     }
 
-    this._list.innerHTML = names.map(name => `
+    // VULN-003: Escape file names before injecting into innerHTML to prevent stored XSS
+    this._list.innerHTML = names.map(name => {
+      const safeName = escapeHtml(name);
+      return `
       <div class="file-tree__item
            ${name === activeName ? ' file-tree__item--active' : ''}
            ${name === rootName   ? ' file-tree__item--root'   : ''}"
-           data-name="${name}">
+           data-name="${safeName}">
         <span>
-          <span class="file-tree__icon">${icon(name)}</span>${name}
+          <span class="file-tree__icon">${icon(name)}</span>${safeName}
         </span>
         <span class="file-tree__item-actions">
-          <button class="btn btn--sm btn--ghost" data-action="delete" data-name="${name}" title="Remover">✕</button>
+          <button class="btn btn--sm btn--ghost" data-action="delete" data-name="${safeName}" title="Remover">✕</button>
         </span>
       </div>
-    `).join('');
+    `;
+    }).join('');
 
     this._list.querySelectorAll('.file-tree__item').forEach(el => {
       el.addEventListener('click', e => {

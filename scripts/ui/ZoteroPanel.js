@@ -1,4 +1,5 @@
 import { t } from '../i18n/index.js';
+import { escapeHtml } from '../utils/escape.js';
 
 /**
  * Retractable Zotero panel in the left column.
@@ -118,16 +119,24 @@ export class ZoteroPanel {
       return;
     }
 
-    this._listEl.innerHTML = refs.map(r => `
-      <div class="ref-item" data-key="${r.key}" title="Inserir \\cite{${r.key}}">
-        <div class="ref-item__title">${r.title}</div>
+    // VULN-004: Escape all reference fields before injecting into innerHTML to prevent stored XSS
+    this._listEl.innerHTML = refs.map(r => {
+      const safeKey    = escapeHtml(r.key);
+      const safeTitle  = escapeHtml(r.title);
+      const safeYear   = escapeHtml(r.year);
+      const authorFirst = r.author ? r.author.split(' and ')[0] + (r.author.includes(' and ') ? ' et al.' : '') : '';
+      const safeAuthor = escapeHtml(authorFirst);
+      return `
+      <div class="ref-item" data-key="${safeKey}" title="Inserir \\cite{${safeKey}}">
+        <div class="ref-item__title">${safeTitle}</div>
         <div class="ref-item__meta">
-          ${r.author ? r.author.split(' and ')[0] + (r.author.includes(' and ') ? ' et al.' : '') : ''}
-          ${r.year ? '· ' + r.year : ''}
+          ${safeAuthor}
+          ${safeYear ? '· ' + safeYear : ''}
         </div>
-        <div class="ref-citekey">\\cite{${r.key}}</div>
+        <div class="ref-citekey">\\cite{${safeKey}}</div>
       </div>
-    `).join('');
+    `;
+    }).join('');
 
     this._listEl.querySelectorAll('.ref-item').forEach(el => {
       const ref = refs.find(r => r.key === el.dataset.key);

@@ -1,3 +1,5 @@
+import { escapeHtml } from '../utils/escape.js';
+
 /**
  * LaTeX editor panel — textarea, cite chips, copy and clear actions.
  *
@@ -53,9 +55,11 @@ export class EditorPanel {
   }
 
   _renderChips() {
-    this._chips.innerHTML = this._keys.map(k =>
-      `<span class="cite-chip" data-key="${k}">\\cite{${k}}</span>`
-    ).join('');
+    // VULN-013: Escape cite keys before injecting into innerHTML to prevent stored XSS
+    this._chips.innerHTML = this._keys.map(k => {
+      const safeKey = escapeHtml(k);
+      return `<span class="cite-chip" data-key="${safeKey}">\\cite{${safeKey}}</span>`;
+    }).join('');
 
     this._chips.querySelectorAll('.cite-chip').forEach(el => {
       el.addEventListener('click', () => this.insertCite(el.dataset.key));
