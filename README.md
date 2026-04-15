@@ -1,152 +1,194 @@
 # ZLEditor
 
-A self-hosted, browser-based LaTeX editor. Think of it as a local Overleaf: import a project, write LaTeX with syntax highlighting and autocomplete, compile, and see the PDF locally. Zotero integration is optional.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Release](https://github.com/Brenaki/ZLEditor/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/Brenaki/ZLEditor/actions/workflows/release.yml)
 
-```
-┌─────────────────┬──────────────────────┬──────────────────────┐
-│   File Tree     │       Editor         │     PDF Viewer       │
-│                 │                      │                      │
-│  main.tex       │  \documentclass...   │  [compiled PDF]      │
-│  refs.bib       │  \cite{smith2023}    │                      │
-│  fig.png        │                      │                      │
-├─────────────────┤                      │                      │
-│  Zotero  ▼      │                      │                      │
-│  Search: ____   │                      │                      │
-│  > Smith 2023   │                      │                      │
-│  > Jones 2022   │                      │                      │
-└─────────────────┴──────────────────────┴──────────────────────┘
-```
+ZLEditor is a local-first LaTeX workspace for academic writing. It combines a browser-based editor, PDF preview, bibliography workflows, optional Zotero integration, and an AI assistant in a self-hosted app that runs on your machine.
+
+The goal is simple: make writing, compiling, and iterating on LaTeX projects feel closer to a modern code editor without depending on a hosted platform.
+
+## Highlights
+
+- Browser-based LaTeX editor with CodeMirror 6
+- Inline PDF preview with local compilation
+- Import/export full projects as `.zip`
+- `.bib` parsing and `\cite{}` autocomplete
+- Optional Zotero Better BibTeX integration
+- AI assistant with streaming responses and compile-log explanation
+- Multi-language UI: Portuguese, English, and Spanish
+- Docker workflow and desktop launcher support
 
 ## Features
 
-- **CodeMirror 6 editor** with LaTeX syntax highlighting
-- **Autocomplete** — type `\` for LaTeX commands, `\cite{` for citekeys from your local `.bib` files and, optionally, Zotero
-- **LaTeX compilation** via `pdflatex`, `xelatex`, or `lualatex` with inline PDF preview
-- **Compilation log modal** with copy button for debugging errors
-- **Project import/export** as `.zip` (supports images and binary files)
-- **File tree** — create new files or import an existing project
-- **Local `.bib` workflow** — import or edit your own `.bib` files and use their citekeys directly in autocomplete
-- **Optional Zotero panel** — search your library and click any reference to insert `\cite{key}` at the cursor
-- **Autosave** to localStorage with restore prompt on reload
-- **Configurable root file** (defaults to `main.tex`)
+- **Modern editor experience**
+  - LaTeX syntax highlighting
+  - Command autocomplete
+  - Citation autocomplete from local `.bib` files and Zotero
+  - Quick Open with `Ctrl+P` for file search and in-project text search
 
----
+- **Project management**
+  - Import complete LaTeX projects from `.zip`
+  - Preserve nested folders, binary assets, fonts, and images
+  - Create and delete files directly from the app
+  - Set any `.tex` file as the compilation root
+  - Export the current project back to `.zip`
 
-## Download
+- **Compilation workflow**
+  - Compile with `pdflatex`, `xelatex`, or `lualatex`
+  - Automatic `bibtex` pass when bibliography data is required
+  - Inline PDF rendering after successful compilation
+  - Detailed compilation log modal with copy-to-clipboard support
+  - Optional auto-compile while editing
 
-Prebuilt desktop binaries are published in **GitHub Releases**:
+- **Bibliography workflow**
+  - Parse local `.bib` files automatically
+  - Update citation suggestions immediately after `.bib` edits
+  - Search Zotero through Better BibTeX
+  - Insert `\cite{key}` directly from the Zotero panel
+  - Optionally write Zotero entries into a project `.bib` file
 
-- Download the latest release from `https://github.com/Brenaki/ZLEditor/releases`
-- Windows: `ZLEditor-windows.exe`
-- Linux: `ZLEditor-linux`
-- macOS: `ZLEditor-macos`
+- **AI assistant**
+  - Sidebar chat panel with streaming responses
+  - Support for OpenAI, Anthropic, Gemini, Ollama, and DeepSeek
+  - Configurable context mode: none, current file, or full project
+  - "Explain log with AI" flow for LaTeX compilation failures
+  - Conversation memory via MemPalace integration
 
-The desktop binary includes the local web app and opens it in your default browser, but **LaTeX is still a separate system dependency**:
+- **Quality-of-life**
+  - Autosave to local storage
+  - Restore previous session on reload
+  - Runtime language switcher (`PT`, `EN`, `ES`)
+  - Desktop launcher with tray icon for packaged builds
 
-- Windows: install [MiKTeX](https://miktex.org/download)
-- Linux: install TeX Live, for example `sudo apt install texlive-full`
-- macOS: install [MacTeX](https://www.tug.org/mactex/)
+## Tech Stack
 
-Platform notes:
+- **Backend:** FastAPI, Uvicorn, Python
+- **Frontend:** Vanilla JavaScript, CodeMirror 6, modular CSS
+- **AI layer:** LiteLLM-based provider adapters
+- **Bibliography:** Zotero Better BibTeX proxy + local `.bib` parsing
+- **Packaging:** Docker, PyInstaller
 
-- macOS Gatekeeper may block the unsigned binary on first launch. If that happens, run `xattr -cr ZLEditor-macos` or allow it in `System Settings -> Privacy & Security`.
-- Windows Defender or other antivirus tools may flag PyInstaller binaries with a false positive. This is a common unsigned-binary behavior, not a known ZLEditor-specific infection.
+## Getting Started
 
----
+### Option 1: Docker
 
-## Prerequisites
-
-### 1. Docker
-
-- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/) installed
-
-That's it. Docker handles Python, TeX Live, and all compilation dependencies.
-
----
-
-## Running with Docker (recommended)
+This is the easiest way to run ZLEditor with LaTeX available inside the container.
 
 ```bash
-git clone https://github.com/Brenaki/ZLEditor.git
+git clone https://github.com/brenaki/ZLEditor.git
 cd ZLEditor
 docker compose up --build
 ```
 
-Then open your browser at **http://localhost:8765**.
+Open `http://localhost:8765`.
 
-> **Linux note:** `docker-compose.yml` uses `network_mode: host`, which lets the container reach Zotero Better BibTeX at `localhost:23119` on your machine. This works automatically on Linux. On macOS or Windows, host networking behaves differently — you may need to adjust the Zotero endpoint.
+Notes:
 
-To stop the server: `Ctrl+C`, then `docker compose down`.
+- The Docker image includes TeX Live and the backend runtime.
+- The provided `docker-compose.yml` uses `network_mode: host`, which is especially useful on Linux for reaching Zotero Better BibTeX at `localhost:23119`.
 
----
+### Option 2: Local development
 
-## Running without Docker
+Requirements:
 
-If you prefer to run directly on your machine, you need:
+- Python 3.11+
+- A LaTeX distribution with `pdflatex` available
+- Node.js 20+ and npm for rebuilding frontend bundles
 
-- Python 3
-- TeX Live with `pdflatex` (e.g. `sudo pacman -S texlive-basic texlive-latex texlive-latexrecommended` on Arch, or `sudo apt install texlive` on Debian/Ubuntu)
-- Firefox
+Setup:
 
 ```bash
-./launch.sh
+git clone https://github.com/brenaki/ZLEditor.git
+cd ZLEditor
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+npm install
+npm run build
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8765
 ```
 
-This starts the server at `http://localhost:8765` and opens Firefox automatically. Press `Ctrl+C` to stop.
+Open `http://127.0.0.1:8765`.
 
----
+## AI Configuration
 
-## Usage
+ZLEditor ships with an optional AI assistant. You can configure providers directly from the in-app settings modal.
 
-### Starting a project
+Supported providers:
 
-You have two options:
+- OpenAI
+- Anthropic
+- Google Gemini
+- Ollama
+- DeepSeek
 
-- **Create files** directly in the file tree using the new file button
-- **Import a `.zip`** to load an existing LaTeX project — the zip can contain `.tex` files, `.bib` files, images, and other resources
+The app stores non-secret AI settings in `config.json` and provider secrets in `config.secrets.json`.
 
-### Writing LaTeX
+## Zotero Integration
 
-The editor provides:
-- Syntax highlighting for LaTeX
-- **`\` autocomplete** — a list of common LaTeX commands
-- **`\cite{` autocomplete** — populated from the `.bib` files in your project, with Zotero as an optional extra source
+Zotero support is optional.
 
-### Optional Zotero integration
+To enable it:
 
-If you want to search an external library instead of maintaining your own `.bib` files, you can enable Zotero:
+1. Install [Zotero](https://www.zotero.org/download/).
+2. Install [Better BibTeX](https://github.com/retorquere/zotero-better-bibtex).
+3. Keep Zotero running while using ZLEditor.
 
-1. Install [Zotero](https://www.zotero.org/download/)
-2. Install the **Better BibTeX** plugin from `https://github.com/retorquere/zotero-better-bibtex`
-3. Keep Zotero open while using ZLEditor
+ZLEditor proxies approved Better BibTeX JSON-RPC methods through `/bbt-proxy`, so the browser UI can query your local library safely.
 
-Then use the **Zotero** panel in the sidebar to search your library and insert `\cite{citekey}` entries.
+## Releases
 
-### Compiling
+Desktop binaries are intended to be distributed through GitHub Releases:
 
-Click **Compile** in the toolbar. You can choose the engine: `pdflatex` (default), `xelatex`, or `lualatex`.
+- Repository: `https://github.com/brenaki/ZLEditor`
+- Releases: `https://github.com/brenaki/ZLEditor/releases`
 
-- On success, the PDF appears in the right panel
-- On error, the compilation log opens automatically — use the **Copy log** button to paste it elsewhere for debugging
+The packaged app launches the local server in the background, opens the browser automatically, and keeps a tray icon available while running.
 
-### Saving / exporting
+## Project Structure
 
-- The project **autosaves** to your browser's localStorage as you work
-- Click **Export (.zip)** to download the full project as a zip file
-
----
-
-## Architecture
-
-```
-Browser (http://localhost:8765)
-        │
-        ▼
-  server.py  (Python HTTP server)
-  ├── GET  /*              → static files (HTML, CSS, JS)
-  ├── POST /compile        → runs pdflatex in a temp dir, returns PDF
-  ├── GET  /compile/log    → returns the last compilation log
-  └── POST /bbt-proxy      → proxies to Zotero BBT at localhost:23119
+```text
+app/        FastAPI app, routers, services, providers
+scripts/    Frontend app, UI modules, services, i18n
+styles/     Layout and component styles
+tests/      Backend and integration tests
+openspec/   Product/spec documentation
 ```
 
-The server acts as a local proxy for Zotero's Better BibTeX API because browsers block direct requests from `localhost` to `localhost` across ports. All requests go through `server.py`.
+## Testing
+
+```bash
+pytest
+```
+
+For coverage-focused runs:
+
+```bash
+pytest --cov=app --cov-fail-under=90 -v
+```
+
+## Contributing
+
+Issues, bug reports, feature requests, and pull requests are welcome.
+
+Good contribution areas:
+
+- LaTeX authoring UX
+- bibliography and Zotero workflows
+- AI-assisted editing flows
+- test coverage
+- packaging and cross-platform improvements
+- UI polish and accessibility
+
+## Contributors
+
+- Victor Cerqueira ([@brenaki](https://github.com/brenaki)) - creator and maintainer
+
+## Maintainer
+
+- Maintained by Victor Cerqueira ([@brenaki](https://github.com/brenaki))
+- Email: [victor.legat.cerqueira@gmail.com](mailto:victor.legat.cerqueira@gmail.com)
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](/home/bnk/Documents/github/ZLEditor/LICENSE).
