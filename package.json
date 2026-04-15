@@ -4,7 +4,7 @@
   "private": true,
   "description": "Local LaTeX editor with Zotero integration",
   "scripts": {
-    "build": "mkdir -p scripts/vendor && esbuild scripts/editor-entry.js --bundle --format=iife --outfile=scripts/editor-bundle.js && esbuild node_modules/jszip/dist/jszip.js --bundle --format=esm --outfile=scripts/vendor/jszip.js"
+    "build": "node -e \"require('fs').mkdirSync('scripts/vendor', { recursive: true })\" && esbuild scripts/editor-entry.js --bundle --format=iife --outfile=scripts/editor-bundle.js && esbuild node_modules/jszip/dist/jszip.js --bundle --format=esm --outfile=scripts/vendor/jszip.js"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.12.0",
